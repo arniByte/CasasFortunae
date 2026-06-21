@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+
+# Simulator / test artifacts
+sim_results/*.tmp
+
+# Local extraction scratch
+/tmp_extract/
