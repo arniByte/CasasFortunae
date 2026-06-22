@@ -363,7 +363,12 @@ body.has-bg .avatar-opt.chosen .avatar-cap{color:var(--gold-bright)}
 .ink-fx{position:fixed;pointer-events:none;z-index:60;width:62px;height:62px;transform:translate(-50%,-50%)}
 .ink-fx.dmg{animation:inkSplash .62s ease-out forwards}
 .ink-fx.heal{animation:inkSplash .8s ease-out forwards}
+.ink-fx.play{width:96px;height:96px;animation:inkSwirl .6s ease-out forwards}
 @keyframes inkSplash{0%{opacity:0;transform:translate(-50%,-50%) scale(.3) rotate(0)}30%{opacity:.95}100%{opacity:0;transform:translate(-50%,-50%) scale(1.25) rotate(12deg)}}
+@keyframes inkSwirl{0%{opacity:0;transform:translate(-50%,-50%) scale(.4) rotate(-28deg)}35%{opacity:.92}100%{opacity:0;transform:translate(-50%,-50%) scale(1.3) rotate(18deg)}}
+/* cards deal in like being laid on the table */
+.card-dealt{animation:cardDeal .5s cubic-bezier(.2,.8,.25,1) backwards}
+@keyframes cardDeal{from{opacity:0;transform:translateY(26px) rotate(-5deg) scale(.9)}to{opacity:1;transform:none}}
 .pstrip::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;border-radius:14px 0 0 14px;background:var(--house-c,#C9A227)}
 .pstrip.active-glow{box-shadow:0 0 0 2px var(--gold-bright),var(--shadow-soft)}
 .pstrip-top{display:flex;align-items:center;gap:10px}
@@ -451,7 +456,7 @@ body.has-bg .avatar-opt.chosen .avatar-cap{color:var(--gold-bright)}
 .card-cost.free{background:radial-gradient(circle at 35% 30%,var(--gold-bright),var(--orpiment));color:#fff;animation:freePulse 1s infinite}
 @keyframes freePulse{0%,100%{box-shadow:0 0 0 0 rgba(232,200,75,0.6)}50%{box-shadow:0 0 0 4px rgba(232,200,75,0)}}
 .card-art{flex:1;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 38%, var(--gesso), var(--vellum-deep));position:relative}
-.card-art::before{content:"";position:absolute;inset:5px;border:1px solid var(--gold-shadow);border-radius:4px;opacity:0.4;pointer-events:none}
+.card-art::before{content:"";position:absolute;inset:5px;border:1.2px solid var(--ink-brown);border-radius:4px;opacity:0.42;pointer-events:none;filter:url(#inkS)}
 .card-art::after{content:"";position:absolute;inset:0;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='cn'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23cn)' opacity='0.05'/%3E%3C/svg%3E");mix-blend-mode:multiply}
 .card-art .card-ill{width:54px;height:54px;display:flex;align-items:center;justify-content:center;opacity:0.92;filter:drop-shadow(0 1px 1px rgba(20,14,6,0.2));position:relative;z-index:1}
 .card-text{background:var(--vellum-deep);font-family:'EB Garamond',serif;font-size:9.5px;line-height:1.2;color:var(--ink-brown);padding:4px 5px;min-height:42px;border-top:1px solid var(--vellum-dark)}
@@ -1110,6 +1115,7 @@ function wheelHubSVG(){
 const INK_FX={
   dmg:`<svg viewBox="0 0 64 64"><g fill="#7E2230" filter="url(#inkRough)"><path d="M32 13 Q41 21 51 19 Q45 28 51 37 Q41 36 38 47 Q32 39 24 47 Q21 36 13 35 Q21 28 14 19 Q25 21 32 13 Z"/></g><g fill="#241910"><circle cx="13" cy="49" r="2.4"/><circle cx="53" cy="46" r="2"/><circle cx="49" cy="13" r="1.7"/><circle cx="33" cy="54" r="1.6"/></g></svg>`,
   heal:`<svg viewBox="0 0 64 64"><g fill="none" stroke="#5A6A38" stroke-width="2.6" stroke-linecap="round" filter="url(#inkS)"><path d="M32 15 V49 M15 32 H49"/><path d="M23 23 L41 41 M41 23 L23 41" stroke-width="1.4" opacity="0.65"/></g><circle cx="32" cy="32" r="5" fill="#C99A2E" stroke="#7E5E16" stroke-width="1"/></svg>`,
+  play:`<svg viewBox="0 0 64 64"><g fill="none" stroke="#241910" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" filter="url(#inkRough)"><path d="M18 46 Q11 30 30 27 Q47 25 41 39 Q38 48 29 43 Q24 40 29 35"/><path d="M40 18 Q52 21 49 33"/></g><circle cx="47" cy="48" r="2.6" fill="#241910"/></svg>`,
 };
 function spawnInkFx(el,type){
   if(!el) return;
@@ -1120,7 +1126,7 @@ function spawnInkFx(el,type){
     setTimeout(()=>d.remove(),900);
   }catch(e){}
 }
-let prevPrestige={0:30,1:30}, prevArmor={0:0,1:0}, prevStatus={0:{},1:{}}, prevThreat={0:false,1:false}, prevCompassion=false, prevAngle=0, boardBuilt=false, selectedUid=null;
+let prevPrestige={0:30,1:30}, prevArmor={0:0,1:0}, prevStatus={0:{},1:{}}, prevThreat={0:false,1:false}, prevCompassion=false, prevAngle=0, boardBuilt=false, selectedUid=null, prevHandUids=new Set();
 function renderGame(s){
   if(s.phase==='lobby') return;
   // leaving select/lobby
@@ -1152,7 +1158,7 @@ function buildBoard(s){
       <div class="action-bar" id="actions"></div>
     </div>
     <div id="toastBox"></div>`;
-  prevAngle=s.wheel_angle;
+  prevAngle=s.wheel_angle; prevHandUids=new Set();
   s.players.forEach(p=>{ prevPrestige[p.seat]=p.prestige; prevArmor[p.seat]=p.armor; prevStatus[p.seat]=statusMap(p); prevThreat[p.seat]=!!p.under_threat; });
   const w=$('#wheel'); if(w){ w.style.transition='none'; w.style.transform=`rotate(${-s.wheel_angle}deg)`; requestAnimationFrame(()=>{w.style.transition='';}); }
 }
@@ -1258,6 +1264,11 @@ function renderHand(s,y,yourTurn){
       <div class="card-text">${esc(c.text)}</div>
     </div>`;
   }).join('')||'<div style="color:var(--gold-pale);font-style:italic;padding:30px;text-align:center;width:100%">Рука пуста</div>';
+  // deal-in: only freshly drawn cards animate (others stay put)
+  const now=new Set(hand.map(c=>c.uid)); let k=0;
+  hand.forEach(c=>{ if(!prevHandUids.has(c.uid)){ const el=$('#hand').querySelector(`.card[data-uid="${c.uid}"]`);
+    if(el){ el.style.animationDelay=(k*70)+'ms'; el.classList.add('card-dealt'); k++; } } });
+  prevHandUids=now;
 }
 const ECON_KINDS=['gain_florin','florin_draw','florin_heal','invest'];
 function tapCard(uid,afford){
@@ -1271,6 +1282,7 @@ function tapCard(uid,afford){
     // immediate feedback by card type; the result sound comes from state diff
     let kind=null; try{ const h=lastState.players[lastState.you].hand; const c=h.find(x=>x.uid===uid); kind=c&&c.kind; }catch(e){}
     SFX.play(ECON_KINDS.includes(kind)?'coin':'card');
+    spawnInkFx(card,'play');   // ink swirl where the card was played
     send({type:'play_card',uid}); selectedUid=null;
   }
   else{ document.querySelectorAll('.card.selected').forEach(c=>c.classList.remove('selected')); if(card)card.classList.add('selected'); selectedUid=uid; SFX.play('tick'); toast('Нажми ещё раз, чтобы сыграть'); }
