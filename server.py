@@ -51,6 +51,7 @@ FLORIN_CAP = 10        # макс. прирост флоринов за один
 MAX_FLORINS = 15       # общий потолок накопленных флоринов — против "копи и взорви"
 MAX_ARMOR = 20         # потолок брони — против бесконечной стены
 CARDS_PER_TURN = 3     # лимит разыгранных карт за ход — выбор приоритета, а не спам
+COMPASSION_THRESHOLD = 10  # престиж ≤ этого → «Сострадание Фортуны» (мягкий комебэк)
 
 # ---------------------------------------------------------------------------
 # Houses (factions)
@@ -240,6 +241,7 @@ class GameState:
         self.log = []
         self.winner = None
         self.can_respin = False
+        self.compassion = False       # «Сострадание Фортуны» сработало в этот ход
         self.peeked_next = None       # for astrolabe/jester peek
         self.rng = random.Random(secrets.randbelow(2**31))
         for p in self.players:
@@ -247,14 +249,29 @@ class GameState:
         self.start_turn(first=True)
 
     # ---- wheel ----
-    def spin_wheel(self):
+    def spin_wheel(self, force=None):
         self.last_blessed = self.blessed
-        elem = self.rng.choice(ELEMENTS)
+        elem = force if force in ELEMENTS else self.rng.choice(ELEMENTS)
         idx = ELEMENTS.index(elem)
         quadrant = 90 * idx
         self.wheel_angle = 360 * 4 + quadrant + self.rng.uniform(-28, 28)
         self.blessed = elem
         return elem
+
+    def _compassion_element(self, p):
+        """Стихия, которой у игрока больше всего карт в руке (только благословляемые,
+        не neutral). Ничья — случайно среди лидеров (детерминировано по rng).
+        None, если благословляемых карт в руке нет."""
+        counts = {}
+        for c in p.hand:
+            e = c["element"]
+            if e in ELEMENTS:
+                counts[e] = counts.get(e, 0) + 1
+        if not counts:
+            return None
+        best = max(counts.values())
+        cands = [e for e in ELEMENTS if counts.get(e, 0) == best]
+        return self.rng.choice(cands)
 
     def start_turn(self, first=False):
         p = self.players[self.active]
@@ -267,13 +284,22 @@ class GameState:
         p.cards_played = 0
 
         # Wheel
+        self.compassion = False
         if opp.debt:
+            # Соперник управляет твоим вращением — Долг сильнее Сострадания.
             self.spin_wheel()
             opp.debt = False
             self.log.append(f"Фортуна в руках соперника! {ELEMENT_RU[self.blessed]}.")
         else:
-            self.spin_wheel()
-            self.log.append(f"Колесо: {ELEMENT_RU[self.blessed]} благословлён.")
+            force = None
+            if not first and p.prestige <= COMPASSION_THRESHOLD:
+                force = self._compassion_element(p)
+            self.spin_wheel(force=force)
+            if force:
+                self.compassion = True
+                self.log.append(f"Сострадание Фортуны: Колесо благоволит {ELEMENT_RU[self.blessed]} — Дом в беде.")
+            else:
+                self.log.append(f"Колесо: {ELEMENT_RU[self.blessed]} благословлён.")
 
         # Fortune streak bonus
         if self.last_blessed == self.blessed and not first:
@@ -676,6 +702,7 @@ class GameState:
             "peeked_ru": ELEMENT_RU.get(self.peeked_next, "") if (self.peeked_next and seat == self.active) else "",
             "winner": self.winner, "log": self.log[-8:], "players": [],
             "cards_per_turn": CARDS_PER_TURN,
+            "compassion": self.compassion and seat == self.active,
         }
         for p in self.players:
             statuses = [{"id": s, "glyph": STATUS_GLYPH.get(s,"?"), "ru": STATUS_RU.get(s,s), "stacks": v}
