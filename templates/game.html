@@ -370,7 +370,7 @@ body.has-bg .avatar-opt.chosen .avatar-cap{color:var(--gold-bright)}
 .card-dealt{animation:cardDeal .5s cubic-bezier(.2,.8,.25,1) backwards}
 @keyframes cardDeal{from{opacity:0;transform:translateY(26px) rotate(-5deg) scale(.9)}to{opacity:1;transform:none}}
 .pstrip::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;border-radius:14px 0 0 14px;background:var(--house-c,#C9A227)}
-.pstrip.active-glow{box-shadow:0 0 0 2px var(--gold-bright),var(--shadow-soft)}
+.pstrip.active-glow{box-shadow:0 0 0 2px var(--gold-bright),0 0 14px 1px rgba(217,174,58,.42),var(--shadow-soft),inset 0 0 0 3px var(--vellum),inset 0 0 0 4px rgba(126,94,22,.28)}
 .pstrip-top{display:flex;align-items:center;gap:10px}
 .p-portrait{width:46px;height:46px;border-radius:9px;overflow:hidden;flex-shrink:0;border:1.5px solid var(--gold-shadow);background:var(--indigo-night)}
 .p-portrait img{width:100%;height:100%;object-fit:cover;object-position:center 18%}
@@ -831,10 +831,12 @@ function svgAvatar(idx){
 }
 function avatarHTML(av, idx){
   if(av && av.type==='met' && av.image){
-    return `<img src="${av.image}" alt="" loading="lazy" onerror="this.parentNode.innerHTML='${svgAvatar(idx||0).replace(/'/g,"\\'")}'">`;
+    // no inlined SVG in onerror — Met titles/urls can contain quotes that break attrs
+    return `<img src="${esc(av.image)}" alt="" loading="lazy" onerror="avatarFallback(this,${idx|0})">`;
   }
   return svgAvatar((av&&av.id)||idx||0);
 }
+function avatarFallback(img, idx){ try{ img.parentNode.innerHTML = svgAvatar(idx||0); }catch(e){} }
 
 function switchTab(m){
   mode=m;
@@ -849,6 +851,7 @@ switchTab('quick');
 Music.init();
 Music.load();
 Backgrounds.load();
+loadHousesAndAvatars();   // prefetch art portraits while the player types their name
 (function(){ const cx=document.querySelector('.entry-codex'); if(cx){ ['tl','tr','bl','br'].forEach(c=>{ const d=document.createElement('div'); d.className='codex-fl '+c; d.innerHTML=flourishSVG(); cx.appendChild(d); }); } })();
 
 /* ---- Ink art loader + entry intro animation (Phase 1 redesign) ---- */
@@ -921,9 +924,17 @@ function doCreate(){
   connect(()=> send({type:'create_room',token,name}));
 }
 
+let avatarsLoaded=false, avatarUserPicked=false;
 async function loadHousesAndAvatars(){
-  try{ const r=await fetch('/api/houses'); HOUSES_DATA=(await r.json()).houses; }catch(e){}
-  try{ const r=await fetch('/api/avatars'); AVATARS=(await r.json()).avatars||[]; }catch(e){ AVATARS=[]; }
+  try{ const r=await fetch('/api/houses'); HOUSES_DATA=(await r.json()).houses; renderHouses(); }catch(e){}
+  if(avatarsLoaded){ renderAvatars(); return; }   // already have art avatars
+  try{
+    const r=await fetch('/api/avatars'); AVATARS=(await r.json()).avatars||[]; avatarsLoaded=true;
+    // upgrade the auto-picked placeholder to a real artwork portrait once it arrives
+    if(AVATARS.length && !avatarUserPicked) chosenAvatar=null;
+    renderAvatars();
+    if(AVATARS.length && !avatarUserPicked && chosenAvatar) sendChoose(isReady);
+  }catch(e){ AVATARS=[]; renderAvatars(); }
 }
 
 function handle(msg){
@@ -972,29 +983,31 @@ function renderHouses(){
     </div>`).join('');
 }
 
+let _avatarOpts=[];
 function renderAvatars(){
   const strip=$('#avatarStrip'); if(!strip) return;
-  let opts=[];
   if(AVATARS.length){
-    opts = AVATARS.map((a,i)=>({av:{type:'met',id:a.id,image:a.image,title:a.title,artist:a.artist},cap:`${a.title}`,i}));
+    _avatarOpts = AVATARS.map((a,i)=>({av:{type:'met',id:a.id,image:a.image,title:a.title,artist:a.artist},cap:a.title||'Портрет',i}));
   }else{
-    opts = AV_PALETTES.map((_,i)=>({av:{type:'svg',id:i},cap:'Портрет',i}));
+    _avatarOpts = AV_PALETTES.map((_,i)=>({av:{type:'svg',id:i},cap:'Портрет',i}));
   }
-  strip.innerHTML = opts.map(o=>{
+  // reference opts by index — never inline avatar data (titles can contain quotes)
+  strip.innerHTML = _avatarOpts.map(o=>{
     const sel = chosenAvatar && ((chosenAvatar.type==='met'&&chosenAvatar.id===o.av.id)||(chosenAvatar.type==='svg'&&chosenAvatar.id===o.av.id));
-    return `<div class="avatar-opt ${sel?'chosen':''}" onclick='pickAvatar(${JSON.stringify(o.av)},${o.i})'>
+    return `<div class="avatar-opt ${sel?'chosen':''}" onclick="pickAvatarByIndex(${o.i})">
       <div class="avatar-portrait">${avatarHTML(o.av,o.i)}</div>
-      <div class="avatar-cap">${o.cap}</div>
+      <div class="avatar-cap">${esc(o.cap)}</div>
     </div>`;
   }).join('');
-  if(!chosenAvatar && opts.length){ chosenAvatar=opts[0].av; renderAvatars(); }
+  if(!chosenAvatar && _avatarOpts.length){ chosenAvatar=_avatarOpts[0].av; renderAvatars(); }
 }
+function pickAvatarByIndex(i){ const o=_avatarOpts[i]; if(o) pickAvatar(o.av,i); }
 
 function pickHouse(id){
   chosenHouse=id; isReady=false; renderHouses(); updateReadyBtn();
   sendChoose(false);
 }
-function pickAvatar(av,i){ chosenAvatar=av; renderAvatars(); sendChoose(isReady); }
+function pickAvatar(av,i){ chosenAvatar=av; avatarUserPicked=true; renderAvatars(); sendChoose(isReady); }
 function updateReadyBtn(){
   const b=$('#readyBtn'); if(!b) return;
   if(!chosenHouse){ b.disabled=true; b.textContent='Сначала выберите Дом'; b.classList.remove('waiting'); return; }
@@ -1312,7 +1325,7 @@ function showOver(s){
 function resetAll(){
   const ov=document.getElementById('over'); if(ov)ov.remove();
   Backgrounds.dim(false);
-  boardBuilt=false; selectBuilt=false; isReady=false; chosenHouse=null; chosenAvatar=null;
+  boardBuilt=false; selectBuilt=false; isReady=false; chosenHouse=null; chosenAvatar=null; avatarUserPicked=false;
   prevPrestige={0:30,1:30}; lobbyData=null;
   $('#stage').innerHTML='';
   showSelect();

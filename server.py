@@ -447,8 +447,8 @@ class GameState:
     # ---- threat estimation (for "под угрозой" indicator) ----
     def _est_damage(self, src, tgt, c):
         """Сколько престижа снимет карта c (src→tgt), если сыграть её сейчас.
-        Чистая оценка без мутаций — зеркалит логику _deal. Благословение врага
-        поглощает удар целиком, поэтому считаем 0."""
+        Чистая оценка без мутаций — зеркалит логику _deal (броня, pierce,
+        break_armor, благословение, fortified, weaken, гнев Савонаролы)."""
         kind, ex = c["kind"], c["extra"]
         val = self._value(src, c)
         if src.has_status("weaken"):
@@ -457,32 +457,45 @@ class GameState:
         blessed = tgt.has_status("blessing")
         fortified = tgt.has_status("fortified")
 
-        def through(amount, pierce=0):
-            if blessed:
-                return 0
-            absorbed = min(armor, amount)
-            return (amount - absorbed) + pierce
-
+        amount = 0; pierce = 0; brk = False
         if kind in ("damage", "damage_status", "draw_damage"):
-            return through(val)
-        if kind == "damage_break":
-            if blessed:
-                return 0
-            return max(0, val - armor) if fortified else val
-        if kind == "damage_pierce":
-            return through(val, pierce=ex.get("pierce", 0))
-        if kind == "charge":
-            return through(val + (2 if src.armor > 0 else 0))
-        if kind == "surge":
-            streak = (self.last_blessed == self.blessed)
-            return through(val + 2 if streak else val, pierce=2)
-        if kind == "armor_damage":
-            return through(min(src.armor, 10))
-        if kind == "tax_enemy":
-            return through(ex.get("damage", 0))
-        if kind == "thorns":
-            return through(val)
-        return 0
+            amount = val
+        elif kind == "damage_break":
+            amount = val; brk = True
+        elif kind == "damage_pierce":
+            amount = val; pierce = ex.get("pierce", 0)
+        elif kind == "charge":
+            amount = val + (2 if src.armor > 0 else 0)
+        elif kind == "surge":
+            amount = (val + 2) if self.last_blessed == self.blessed else val; pierce = 2
+        elif kind == "armor_damage":
+            amount = min(src.armor, 10)
+        elif kind == "tax_enemy":
+            amount = ex.get("damage", 0)
+        elif kind == "thorns":
+            amount = val
+        elif kind == "spend_damage":
+            amount = min(src.florins, val)
+        elif kind == "zeal":
+            amount = val + max(0, START_PRESTIGE - src.prestige) // ex.get("per", 4)
+        elif kind == "immolate":
+            pierce = val
+        elif kind == "martyr":
+            pierce = (src.prestige + 1) // 2
+        else:
+            return 0
+
+        # Savonarola «Праведный гнев»: +2 урона врагу, пока отстаёшь по престижу
+        if src.house == "savonarola" and src is not tgt and src.prestige < tgt.prestige and (amount + pierce) > 0:
+            if amount > 0: amount += 2
+            else: pierce += 2
+
+        if blessed:
+            return 0
+        if brk:
+            return (max(0, amount - armor) + pierce) if fortified else (amount + pierce)
+        absorbed = min(armor, amount)
+        return (amount - absorbed) + pierce
 
     def _self_cost(self, p, c):
         """Сколько престижа карта снимает с самого игрока (жертвы Савонаролы)."""
@@ -695,6 +708,7 @@ class GameState:
 
     # ---- House relic activation ----
     def use_relic(self, seat):
+        if self.phase != "playing": return "Игра окончена."
         if seat != self.active: return "Сейчас не ваш ход."
         p = self.players[seat]
         opp = self.players[1 - seat]
@@ -734,6 +748,7 @@ class GameState:
         return None
 
     def take_debt(self, seat):
+        if self.phase != "playing": return "Игра окончена."
         if seat != self.active: return "Сейчас не ваш ход."
         p = self.players[seat]
         if p.debt: return "Долг уже взят."
@@ -743,12 +758,14 @@ class GameState:
         return None
 
     def respin(self, seat):
+        if self.phase != "playing": return "Игра окончена."
         if seat != self.active or not self.can_respin: return "Перекрутка недоступна."
         self.spin_wheel(); self.can_respin = False; self.peeked_next = None
         self.log.append(f"Колесо перекручено: {ELEMENT_RU[self.blessed]}.")
         return None
 
     def end_turn(self, seat):
+        if self.phase != "playing": return "Игра окончена."
         if seat != self.active: return "Сейчас не ваш ход."
         self.can_respin = False; self.peeked_next = None
         self.active = 1 - self.active
