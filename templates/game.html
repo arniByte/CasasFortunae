@@ -81,7 +81,7 @@ body{
 #entry{min-height:100vh;min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:22px}
 .entry-codex{width:100%;max-width:440px;border-radius:18px;padding:40px 32px 34px;text-align:center;position:relative}
 .entry-codex::before{
-  content:"";position:absolute;inset:14px;border:1px solid rgba(138,106,28,0.35);border-radius:10px;pointer-events:none;
+  content:"";position:absolute;inset:14px;border-radius:10px;pointer-events:none;
 }
 .emblem-top{width:88px;height:auto;margin:0 auto 14px;position:relative;z-index:2;filter:drop-shadow(0 3px 6px rgba(20,14,6,0.4))}
 .codex-fl{position:absolute;width:58px;height:58px;pointer-events:none;z-index:1;opacity:0.9}
@@ -96,6 +96,34 @@ body{
 }
 .entry-codex .sub{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:19px;color:var(--madder);font-weight:500}
 .entry-codex .latin{font-family:'Cinzel',serif;font-size:10px;letter-spacing:0.4em;color:var(--gold-shadow);text-transform:uppercase;margin:6px 0 26px}
+
+/* ---- ink-animation system (Phase 1 redesign) ---- */
+/* self-drawing hand-inked frame */
+.codex-frame{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1;overflow:visible}
+.codex-frame .cf-line{fill:none;stroke:var(--ink-black);stroke-width:2.4;stroke-linejoin:round;stroke-linecap:round;filter:url(#inkRough);opacity:.82}
+.codex-frame .cf-inner{stroke:var(--gold-shadow);stroke-width:1;opacity:.5}
+/* ink-reveal: filled art soaks onto parchment from the bottom up */
+.ink-reveal{opacity:0}
+.ink-reveal.drawn{animation:inkReveal 1.45s cubic-bezier(.2,.72,.2,1) forwards}
+@keyframes inkReveal{
+  0%{opacity:0;clip-path:inset(100% 0 0 0);filter:blur(2.4px);transform:translateY(7px) scale(.975)}
+  55%{opacity:1;filter:blur(.4px)}
+  100%{opacity:1;clip-path:inset(0 0 0 0);filter:blur(0);transform:translateY(0) scale(1)}
+}
+/* eagle hero emblem */
+.emblem-eagle{width:128px;height:150px;margin:2px auto 12px;position:relative;z-index:2;filter:drop-shadow(0 4px 8px rgba(20,14,6,.42))}
+.emblem-eagle svg{width:100%;height:100%;display:block;overflow:visible}
+.emblem-eagle svg g{filter:url(#inkS)}
+.emblem-eagle::after{content:"";position:absolute;left:50%;top:54%;width:120%;height:80%;transform:translate(-50%,-50%);
+  background:radial-gradient(ellipse at center,rgba(36,25,16,.16),transparent 66%);z-index:-1;opacity:0;animation:inkBloom 1.8s ease-out .25s forwards}
+@keyframes inkBloom{0%{opacity:0;transform:translate(-50%,-50%) scale(.4)}45%{opacity:.9}100%{opacity:.55;transform:translate(-50%,-50%) scale(1)}}
+/* illuminated drop-cap initial */
+.dropcap{font-family:'Cinzel',serif;font-weight:900;font-size:1.18em;color:var(--gold-leaf);
+  text-shadow:0 1px 0 rgba(255,255,255,.5),0 0 1px var(--gold-shadow);
+  -webkit-text-stroke:.5px var(--gold-shadow)}
+/* fade-rise for entry text/controls after the ink settles */
+.entry-rise{opacity:0;animation:entryRise .9s ease-out forwards}
+@keyframes entryRise{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:translateY(0)}}
 .tabs{display:flex;gap:8px;margin-bottom:20px;position:relative;z-index:2}
 .tab{flex:1;cursor:pointer;text-align:center;font-family:'Cinzel',serif;font-size:11px;letter-spacing:0.08em;padding:10px;border-radius:8px;border:1.5px solid var(--gold-shadow);color:var(--gold-shadow);background:transparent;transition:all .15s}
 .tab.on{background:var(--ultramarine);color:var(--gesso);border-color:var(--indigo-night)}
@@ -117,26 +145,20 @@ body{
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
   <filter id="inkG" x="-6%" y="-6%" width="112%" height="112%"><feTurbulence type="fractalNoise" baseFrequency="0.028" numOctaves="2" seed="9" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.5"/></filter>
   <filter id="inkS" x="-8%" y="-8%" width="116%" height="116%"><feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" seed="4" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.2"/></filter>
+  <!-- rough hand-drawn edge for frames/emblems (stronger wobble + animated drift) -->
+  <filter id="inkRough" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="3" seed="7" result="n"><animate attributeName="seed" values="7;9;7" dur="8s" repeatCount="indefinite"/></feTurbulence><feDisplacementMap in="SourceGraphic" in2="n" scale="3.2"/></filter>
+  <!-- ink bloom: soft spread used under emblems as it "soaks" the parchment -->
+  <filter id="inkBleed" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur in="SourceGraphic" stdDeviation="3.2" result="b"/><feColorMatrix in="b" type="matrix" values="0 0 0 0 0.14  0 0 0 0 0.10  0 0 0 0 0.06  0 0 0 0.5 0"/></filter>
 </defs></svg>
 <div id="entry" class="parchment gilt-frame">
   <div class="entry-codex">
-    <svg class="emblem-top" viewBox="0 0 120 132" aria-hidden="true">
-      <defs><filter id="inkLogo" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="0.025" numOctaves="2" seed="4" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.4"/></filter></defs>
-      <path d="M60 8 Q92 14 104 20 Q104 74 60 124 Q16 74 16 20 Q28 14 60 8 Z" fill="#7E2230" stroke="#B8901F" stroke-width="3.5"/>
-      <path d="M60 12 Q88 17 100 22 Q100 72 60 118 Q20 72 20 22 Q32 17 60 12 Z" fill="none" stroke="#E8CE86" stroke-width="0.9" opacity="0.55"/>
-      <g filter="url(#inkLogo)">
-        <path d="M64 44 Q86 30 95 44 Q86 45 89 53 Q97 53 92 62 Q84 60 87 68 Q95 70 89 79 Q80 74 78 65 Q72 54 64 44 Z" fill="#9B3340" stroke="#241910" stroke-width="1.7" stroke-linejoin="round"/>
-        <path d="M73 98 Q92 94 87 75 Q85 86 77 85 Q83 90 80 94 Q77 92 73 98 Z" fill="#D9AE3A" stroke="#241910" stroke-width="1.7" stroke-linejoin="round"/>
-        <path d="M50 104 Q43 88 53 80 Q45 67 55 59 Q50 50 58 43 L64 49 Q68 58 63 67 Q72 75 67 88 L73 104 L65 104 L62 90 Q55 90 53 104 Z" fill="#D9AE3A" stroke="#241910" stroke-width="1.8" stroke-linejoin="round"/>
-        <path d="M53 100 L51 106 L60 106 L62 100 Z" fill="#D9AE3A" stroke="#241910" stroke-width="1.6" stroke-linejoin="round"/>
-        <path d="M57 60 Q46 61 41 72 Q48 67 51 71 Q47 77 52 78 Q57 69 59 63 Z" fill="#D9AE3A" stroke="#241910" stroke-width="1.7" stroke-linejoin="round"/>
-        <path d="M58 43 Q53 37 57 31 Q54 26 48 28 Q53 32 50 35 Q54 39 58 43 Z" fill="#D9AE3A" stroke="#241910" stroke-width="1.8" stroke-linejoin="round"/>
-        <path d="M50 30 Q41 29 38 34 Q43 34 43 36 Q47 38 50 35 Z" fill="#E8CE86" stroke="#241910" stroke-width="1.5" stroke-linejoin="round"/>
-        <path d="M57 30 Q60 23 64 26 Q59 27 60 33 Z" fill="#D9AE3A" stroke="#241910" stroke-width="1.4" stroke-linejoin="round"/>
-      </g>
-      <circle cx="52" cy="32" r="1.5" fill="#241910"/>
+    <!-- self-drawing hand-inked frame around the codex -->
+    <svg class="codex-frame" viewBox="0 0 400 560" preserveAspectRatio="none" aria-hidden="true">
+      <path class="cf-line" d="M14 12 L386 12 L386 548 L14 548 Z"/>
+      <path class="cf-line cf-inner" d="M24 22 L376 22 L376 538 L24 538 Z"/>
     </svg>
-    <h1>Casas<br>Fortunae</h1>
+    <div class="emblem-eagle ink-reveal" id="entryEagle" aria-hidden="true"></div>
+    <h1><span class="dropcap">C</span>asas<br>Fortunae</h1>
     <div class="sub">Дома Фортуны</div>
     <div class="latin">Ludus Nobilium · MMXXVI</div>
     <div class="tabs">
@@ -760,7 +782,42 @@ Music.init();
 Music.load();
 Backgrounds.load();
 (function(){ const cx=document.querySelector('.entry-codex'); if(cx){ ['tl','tr','bl','br'].forEach(c=>{ const d=document.createElement('div'); d.className='codex-fl '+c; d.innerHTML=flourishSVG(); cx.appendChild(d); }); } })();
-setTimeout(()=>Tutorial.maybeAutoOpen(), 600);
+
+/* ---- Ink art loader + entry intro animation (Phase 1 redesign) ---- */
+window.ART = window.ART || {};
+function loadInkArt(name){
+  if(window.ART[name]) return Promise.resolve(window.ART[name]);
+  return fetch(`/static/art/${name}.svg`).then(r=>r.ok?r.text():'').then(t=>{ window.ART[name]=t; return t; }).catch(()=>'');
+}
+/* draw a stroked path on, like a quill inking a line */
+function inkDrawPath(path, dur, delay){
+  try{
+    const len=path.getTotalLength();
+    path.style.transition='none';
+    path.style.strokeDasharray=len; path.style.strokeDashoffset=len;
+    requestAnimationFrame(()=>{ requestAnimationFrame(()=>{
+      path.style.transition=`stroke-dashoffset ${dur}ms cubic-bezier(.45,.05,.25,1) ${delay}ms`;
+      path.style.strokeDashoffset='0';
+    }); });
+  }catch(e){}
+}
+function playEntryIntro(){
+  // 1) the codex frame draws itself on
+  document.querySelectorAll('#entry .cf-line').forEach((p,i)=>inkDrawPath(p, 1500, i*260));
+  // 2) the heraldic eagle soaks onto the parchment
+  const host=document.getElementById('entryEagle');
+  if(host){ loadInkArt('eagle').then(svg=>{ if(svg){ host.innerHTML=svg;
+    const s=host.querySelector('svg'); if(s){ s.removeAttribute('width'); s.removeAttribute('height'); }
+  } setTimeout(()=>host.classList.add('drawn'), 360); }); }
+  // 3) text + controls rise in after the ink settles
+  const seq=['.entry-codex h1','.entry-codex .sub','.entry-codex .latin','.tabs','#entry .field','#joinBtn','#createBtn','.music-picker','#entryHint'];
+  let d=620;
+  seq.forEach(sel=>document.querySelectorAll('#entry '+sel.replace('#entry ','')).forEach(el=>{
+    el.style.animationDelay=d+'ms'; el.classList.add('entry-rise'); d+=110;
+  }));
+}
+playEntryIntro();
+setTimeout(()=>Tutorial.maybeAutoOpen(), 1700);
 function _firstGesture(){
   Music.kickstart();
   SFX.init(); SFX.resume();
