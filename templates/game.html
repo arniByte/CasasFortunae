@@ -354,7 +354,16 @@ body.has-bg .avatar-opt.chosen .avatar-cap{color:var(--gold-bright)}
 /* ============ GAME BOARD ============ */
 #board{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top) + 48px) 10px calc(env(safe-area-inset-bottom) + 6px);max-width:580px;margin:0 auto}
 
-.pstrip{border-radius:14px;padding:9px 11px;margin:6px 0;position:relative;background:var(--vellum);border:1.5px solid var(--gold-shadow);box-shadow:var(--shadow-soft)}
+.pstrip{border-radius:12px;padding:9px 11px;margin:6px 0;position:relative;overflow:hidden;
+  background:radial-gradient(circle at 22% 16%,rgba(186,160,110,.12),transparent 44%),linear-gradient(165deg,var(--gesso),var(--vellum) 58%,var(--vellum-deep));
+  border:1.5px solid var(--house-c,var(--gold-shadow));
+  box-shadow:var(--shadow-soft),inset 0 0 0 3px var(--vellum),inset 0 0 0 4px rgba(126,94,22,.28)}
+.pstrip::after{content:"";position:absolute;inset:4px;border:1px solid var(--house-c,var(--gold-shadow));border-radius:8px;opacity:.2;pointer-events:none;filter:url(#inkS)}
+/* ink flourish spawned on damage/heal */
+.ink-fx{position:fixed;pointer-events:none;z-index:60;width:62px;height:62px;transform:translate(-50%,-50%)}
+.ink-fx.dmg{animation:inkSplash .62s ease-out forwards}
+.ink-fx.heal{animation:inkSplash .8s ease-out forwards}
+@keyframes inkSplash{0%{opacity:0;transform:translate(-50%,-50%) scale(.3) rotate(0)}30%{opacity:.95}100%{opacity:0;transform:translate(-50%,-50%) scale(1.25) rotate(12deg)}}
 .pstrip::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;border-radius:14px 0 0 14px;background:var(--house-c,#C9A227)}
 .pstrip.active-glow{box-shadow:0 0 0 2px var(--gold-bright),var(--shadow-soft)}
 .pstrip-top{display:flex;align-items:center;gap:10px}
@@ -410,7 +419,8 @@ body.has-bg .avatar-opt.chosen .avatar-cap{color:var(--gold-bright)}
 @keyframes laurelSwayR{0%,100%{transform:scaleX(-1) rotate(-2deg)}50%{transform:scaleX(-1) rotate(2deg)}}
 .turn-banner.your-turn{background:rgba(126,34,48,0.62);color:#fff}
 .wheel-wrap{position:relative;width:158px;height:158px}
-.wheel-pointer{position:absolute;top:-3px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:9px solid transparent;border-right:9px solid transparent;border-top:18px solid var(--gold-bright);z-index:5;filter:drop-shadow(0 2px 2px rgba(0,0,0,0.6))}
+.wheel-pointer{position:absolute;top:-3px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:9px solid transparent;border-right:9px solid transparent;border-top:18px solid var(--gold-bright);z-index:6;filter:drop-shadow(0 2px 2px rgba(0,0,0,0.6))}
+.wheel-hub{position:absolute;top:0;left:0;width:158px;height:158px;z-index:5;pointer-events:none}
 #wheel{transition:transform 2.6s cubic-bezier(0.17,0.67,0.16,0.99)}
 .bless-tag{font-family:'Cinzel',serif;font-size:12px;letter-spacing:0.08em;padding:3px 14px;border-radius:14px;color:var(--gesso);border:1px solid rgba(0,0,0,0.3);text-transform:uppercase;box-shadow:var(--shadow-soft)}
 .bless-tag.compassion{border-color:var(--gold-bright);animation:compassionGlow 1.6s ease-in-out infinite}
@@ -1072,22 +1082,44 @@ function wheelSVG(){
   // rim studs (manuscript wheel-of-fortune dots)
   let studs='';
   for(let k=0;k<24;k++){ const ang=k*15*Math.PI/180; studs+=`<circle cx="${(cx+74.5*Math.cos(ang)).toFixed(1)}" cy="${(cy+74.5*Math.sin(ang)).toFixed(1)}" r="1.1" fill="#7E5E16"/>`; }
+  // rotating disc only — the hub/legend stays still (see wheelHubSVG)
   return `<svg id="wheel" width="158" height="158" viewBox="0 0 158 158">
-    <defs><radialGradient id="hub" cx="42%" cy="38%" r="70%"><stop offset="0%" stop-color="#5A4028"/><stop offset="100%" stop-color="#241910"/></radialGradient></defs>
     <circle cx="79" cy="79" r="78" fill="#241910"/>
     <circle cx="79" cy="79" r="76" fill="#33210F" stroke="#B8901F" stroke-width="2.5"/>
     ${segs}
     <circle cx="79" cy="79" r="72" fill="none" stroke="#E8CE86" stroke-width="1.2"/>
     <circle cx="79" cy="79" r="68" fill="none" stroke="#7E5E16" stroke-width="0.6" opacity="0.7"/>
     ${studs}
-    <circle cx="79" cy="79" r="19" fill="url(#hub)" stroke="#B8901F" stroke-width="2.5"/>
-    <circle cx="79" cy="79" r="15" fill="none" stroke="#7E5E16" stroke-width="0.6"/>
-    <text x="79" y="75" text-anchor="middle" font-family="Cinzel" font-size="6.5" letter-spacing="0.5" fill="#E8CE86">ROTA</text>
-    <text x="79" y="85" text-anchor="middle" font-family="Cinzel" font-size="5.2" letter-spacing="0.3" fill="#B8901F">FORTVNAE</text>
+  </svg>`;
+}
+/* static centre — does NOT rotate with the wheel (the fixed point of Fortune) */
+function wheelHubSVG(){
+  return `<svg class="wheel-hub" width="158" height="158" viewBox="0 0 158 158" aria-hidden="true">
+    <defs><radialGradient id="hub" cx="42%" cy="38%" r="70%"><stop offset="0%" stop-color="#5A4028"/><stop offset="100%" stop-color="#241910"/></radialGradient></defs>
+    <circle cx="79" cy="79" r="21" fill="url(#hub)" stroke="#B8901F" stroke-width="2.5"/>
+    <circle cx="79" cy="79" r="17" fill="none" stroke="#7E5E16" stroke-width="0.6"/>
+    <g filter="url(#inkS)">
+      <text x="79" y="75" text-anchor="middle" font-family="Cinzel" font-weight="700" font-size="6.5" letter-spacing="0.5" fill="#E8CE86">ROTA</text>
+      <text x="79" y="85" text-anchor="middle" font-family="Cinzel" font-size="5" letter-spacing="0.3" fill="#B8901F">FORTVNAE</text>
+    </g>
   </svg>`;
 }
 
 /* ============ GAME ============ */
+/* ink flourishes that bloom on the prestige number when it changes */
+const INK_FX={
+  dmg:`<svg viewBox="0 0 64 64"><g fill="#7E2230" filter="url(#inkRough)"><path d="M32 13 Q41 21 51 19 Q45 28 51 37 Q41 36 38 47 Q32 39 24 47 Q21 36 13 35 Q21 28 14 19 Q25 21 32 13 Z"/></g><g fill="#241910"><circle cx="13" cy="49" r="2.4"/><circle cx="53" cy="46" r="2"/><circle cx="49" cy="13" r="1.7"/><circle cx="33" cy="54" r="1.6"/></g></svg>`,
+  heal:`<svg viewBox="0 0 64 64"><g fill="none" stroke="#5A6A38" stroke-width="2.6" stroke-linecap="round" filter="url(#inkS)"><path d="M32 15 V49 M15 32 H49"/><path d="M23 23 L41 41 M41 23 L23 41" stroke-width="1.4" opacity="0.65"/></g><circle cx="32" cy="32" r="5" fill="#C99A2E" stroke="#7E5E16" stroke-width="1"/></svg>`,
+};
+function spawnInkFx(el,type){
+  if(!el) return;
+  try{ const r=el.getBoundingClientRect();
+    const d=document.createElement('div'); d.className='ink-fx '+type;
+    d.style.left=(r.left+r.width/2)+'px'; d.style.top=(r.top+r.height/2)+'px';
+    d.innerHTML=INK_FX[type]||''; document.body.appendChild(d);
+    setTimeout(()=>d.remove(),900);
+  }catch(e){}
+}
 let prevPrestige={0:30,1:30}, prevArmor={0:0,1:0}, prevStatus={0:{},1:{}}, prevThreat={0:false,1:false}, prevCompassion=false, prevAngle=0, boardBuilt=false, selectedUid=null;
 function renderGame(s){
   if(s.phase==='lobby') return;
@@ -1110,7 +1142,7 @@ function buildBoard(s){
           <div class="turn-banner" id="turnBanner"></div>
           <span class="laurel laurel-r">${laurelSVG()}</span>
         </div>
-        <div class="wheel-wrap"><div class="wheel-pointer"></div>${wheelSVG()}</div>
+        <div class="wheel-wrap"><div class="wheel-pointer"></div>${wheelSVG()}${wheelHubSVG()}</div>
         <div class="bless-tag" id="blessTag"></div>
         <div class="peek-tag" id="peekTag"></div>
         <div class="log" id="log"></div>
@@ -1188,8 +1220,8 @@ function updateBoard(s){
   [o,y].forEach(p=>{
     const el=document.querySelector(`[data-pr="${p.seat}"]`);
     if(el&&prevPrestige[p.seat]!==undefined){
-      if(p.prestige<prevPrestige[p.seat]){ el.classList.remove('flash-dmg');void el.offsetWidth;el.classList.add('flash-dmg'); SFX.play('hit'); }
-      else if(p.prestige>prevPrestige[p.seat]){ el.classList.remove('flash-heal');void el.offsetWidth;el.classList.add('flash-heal'); SFX.play('heal'); }
+      if(p.prestige<prevPrestige[p.seat]){ el.classList.remove('flash-dmg');void el.offsetWidth;el.classList.add('flash-dmg'); SFX.play('hit'); spawnInkFx(el,'dmg'); }
+      else if(p.prestige>prevPrestige[p.seat]){ el.classList.remove('flash-heal');void el.offsetWidth;el.classList.add('flash-heal'); SFX.play('heal'); spawnInkFx(el,'heal'); }
     }
     // armor gained
     if(prevArmor[p.seat]!==undefined && p.armor>prevArmor[p.seat]) SFX.play('armor');
