@@ -38,7 +38,7 @@ _secrets.randbelow = lambda n: random.randrange(n) if n > 0 else 0
 _secrets.token_hex = lambda n=32: "%0*x" % (n * 2, random.getrandbits(n * 8))
 
 import server
-from server import GameState, HOUSES, ELEMENTS
+from server import GameState, HOUSES, ELEMENTS, START_PRESTIGE
 
 HOUSE_IDS = list(HOUSES.keys())            # medici, borgia, sforza, este
 STRATEGIES = ["aggressor", "economist", "random", "adaptive"]
@@ -47,10 +47,12 @@ STRATEGIES = ["aggressor", "economist", "random", "adaptive"]
 # Классификация карт по kind (для эвристик ботов)
 # ---------------------------------------------------------------------------
 DAMAGE_KINDS = {"damage", "damage_status", "damage_break", "damage_pierce",
-                "charge", "surge", "draw_damage", "armor_damage"}
-HEAL_KINDS   = {"heal", "heal_draw", "armor_heal", "florin_heal"}
+                "charge", "surge", "draw_damage", "armor_damage",
+                "immolate", "zeal", "martyr"}
+PIERCE_KINDS = {"immolate", "martyr"}      # урон полностью в обход брони
+HEAL_KINDS   = {"heal", "heal_draw", "armor_heal", "florin_heal", "penance"}
 ARMOR_KINDS  = {"armor", "armor_status", "armor_heal", "armor_blessing"}
-ECON_KINDS   = {"gain_florin", "florin_draw", "florin_heal", "invest"}
+ECON_KINDS   = {"gain_florin", "florin_draw", "florin_heal", "invest", "tithe"}
 DRAW_KINDS   = {"draw", "draw_discount", "status_draw", "codex", "peek_draw", "florin_draw"}
 
 
@@ -66,14 +68,26 @@ def est_damage(gs, p, opp, c):
         return 0
     val = gs._value(p, c)
     if kind == "charge":
-        return val + (2 if p.armor > 0 else 0)
-    if kind == "surge":
-        return val + (2 if gs.last_blessed == gs.blessed else 0)
-    if kind == "armor_damage":
-        return p.armor
-    if kind == "damage_pierce":
-        return val + c["extra"].get("pierce", 0)
-    return val
+        d = val + (2 if p.armor > 0 else 0)
+    elif kind == "surge":
+        d = val + (2 if gs.last_blessed == gs.blessed else 0)
+    elif kind == "armor_damage":
+        d = min(p.armor, 10)
+    elif kind == "damage_pierce":
+        d = val + c["extra"].get("pierce", 0)
+    elif kind == "immolate":
+        d = val
+    elif kind == "zeal":
+        per = c["extra"].get("per", 5)
+        d = val + max(0, (START_PRESTIGE - p.prestige)) // per
+    elif kind == "martyr":
+        d = (p.prestige + 1) // 2
+    else:
+        d = val
+    # Savonarola «Праведный гнев»: +2 урона врагу, пока отстаёшь по престижу
+    if p.house == "savonarola" and p.prestige < opp.prestige and d > 0:
+        d += 2
+    return d
 
 
 def dot_bonus(gs, p, opp, c):
@@ -91,7 +105,19 @@ def dot_bonus(gs, p, opp, c):
         bonus += (base * 2 + opp.statuses.get("poison", 0)) * POISON_W if opp.has_status("poison") else base * POISON_W
     if c["kind"] == "poison_skip":
         bonus += gs._value(p, c) * POISON_W
+    if c["kind"] == "flagellant":          # всегда накладывает Кровотечение
+        bonus += ex.get("stacks", 2) * BLEED_W
     return bonus
+
+
+def self_damage(gs, p, c):
+    """Сколько престижа карта снимает с САМОГО игрока (жертвенные карты Савонаролы)."""
+    kind, ex = c["kind"], c["extra"]
+    if kind in ("immolate", "tithe", "flagellant"):
+        return ex.get("self", 0)
+    if kind == "martyr":
+        return (p.prestige + 1) // 2
+    return 0
 
 
 def card_pressure(gs, seat, c, w):
@@ -102,19 +128,26 @@ def card_pressure(gs, seat, c, w):
     s = 0.0
     s += est_damage(gs, p, opp, c) * w["dmg"]
     s += dot_bonus(gs, p, opp, c) * w["dmg"]
-    if kind in ("heal", "heal_draw"): s += val * w["heal"]
+    if kind in ("heal", "heal_draw", "penance"): s += val * w["heal"]
     if kind == "armor_heal": s += val * w["armor"] + ex.get("heal", 0) * w["heal"]
     if kind == "florin_heal": s += ex.get("heal", 0) * w["heal"] + val * w["econ"]
     if kind in ("armor", "armor_status", "armor_blessing"): s += val * w["armor"]
     if kind in ("gain_florin", "florin_draw", "invest", "counting"): s += max(val, 2) * w["econ"]
-    if kind in ("draw", "draw_discount", "status_draw", "codex", "peek_draw", "florin_draw"):
-        s += (ex.get("draw", val if kind == "draw" else 1) or 1) * w["draw"]
-    if kind in ("status_self", "cleanse_self", "armor_blessing"): s += 0.8  # inspiration/blessing/cleanse
+    if kind == "tithe": s += val * w["econ"]
+    if kind in ("draw", "draw_discount", "status_draw", "codex", "peek_draw", "florin_draw", "tithe", "flagellant", "penance"):
+        s += (ex.get("draw", val if kind == "draw" else 1) or 0) * w["draw"]
+    if kind in ("status_self", "cleanse_self", "armor_blessing", "penance"): s += 0.8  # inspiration/blessing/cleanse
     if kind == "tax_enemy": s += 0.9
     if kind == "harmonic": s += 1.2
     if kind == "return_card": s += 0.7 if p.discard else -1
     if kind == "peek_respin": s += 0.4
     if kind == "thorns": s += (4 - 4 * 0.5)  # бьёт обоих; ситуативно
+    # Жертва престижем: вычитаем стоимость здоровья; никогда не самоубиваемся
+    sd = self_damage(gs, p, c)
+    if sd > 0:
+        if sd >= p.prestige:
+            return -999.0                 # суицидальный розыгрыш — запрещаем
+        s -= sd * (1.0 + (1.5 if p.prestige <= 12 else 0.0))  # дороже, когда сам низко
     return s
 
 
@@ -141,10 +174,11 @@ def _lethal_card(gs, seat):
     hp = opp.prestige + opp.armor
     best = None
     for c in affordable(gs, seat):
+        if self_damage(gs, p, c) >= p.prestige:   # не убиваем себя ради добивания
+            continue
         d = est_damage(gs, p, opp, c)
-        # break_armor/pierce игнорируют часть брони — учтём грубо
-        if c["kind"] in ("damage_break",):
-            d = gs._value(p, c)  # сравниваем с престижем, броню ломает
+        # break_armor/pierce игнорируют броню — сравниваем с престижем напрямую
+        if c["kind"] in ("damage_break",) or c["kind"] in PIERCE_KINDS:
             if d >= opp.prestige:
                 return c
         if d >= hp:
@@ -166,6 +200,8 @@ def _relic_ready(gs, seat):
         return (not p.relic_used_turn) and p.florins >= 3
     if p.house == "este":
         return not p.relic_used_turn
+    if p.house == "savonarola":
+        return (not p.relic_used_turn) and p.prestige > 6
     return False
 
 
@@ -179,7 +215,7 @@ def choose_aggressor(gs, seat):
     lc = _lethal_card(gs, seat)
     if lc:
         return ("play", lc["uid"])
-    if p.house in ("sforza", "borgia") and _relic_ready(gs, seat):
+    if p.house in ("sforza", "borgia", "savonarola") and _relic_ready(gs, seat):
         return ("relic",)
     best = _best_by_pressure(gs, seat, W_AGGRO, threshold=0.2)
     if best:
@@ -230,6 +266,8 @@ def choose_adaptive(gs, seat):
         return ("play", lc["uid"])
     # 2) Реликвия по ситуации
     if p.house in ("sforza", "borgia") and _relic_ready(gs, seat) and opp.prestige <= 14:
+        return ("relic",)
+    if p.house == "savonarola" and _relic_ready(gs, seat) and opp.prestige <= 14 and p.prestige > 8:
         return ("relic",)
     if p.house == "medici" and _relic_ready(gs, seat) and p.florins >= 6:
         return ("relic",)
