@@ -380,6 +380,8 @@ body.has-bg .avatar-opt.chosen .avatar-cap{color:var(--gold-bright)}
 .wheel-pointer{position:absolute;top:-3px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:9px solid transparent;border-right:9px solid transparent;border-top:18px solid var(--gold-bright);z-index:5;filter:drop-shadow(0 2px 2px rgba(0,0,0,0.6))}
 #wheel{transition:transform 2.6s cubic-bezier(0.17,0.67,0.16,0.99)}
 .bless-tag{font-family:'Cinzel',serif;font-size:12px;letter-spacing:0.08em;padding:3px 14px;border-radius:14px;color:var(--gesso);border:1px solid rgba(0,0,0,0.3);text-transform:uppercase;box-shadow:var(--shadow-soft)}
+.bless-tag.compassion{border-color:var(--gold-bright);animation:compassionGlow 1.6s ease-in-out infinite}
+@keyframes compassionGlow{0%,100%{box-shadow:0 0 8px 1px rgba(217,174,58,.4)}50%{box-shadow:0 0 16px 4px rgba(217,174,58,.75)}}
 .peek-tag{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:13px;color:var(--ink-soft);font-weight:600}
 .log{width:100%;max-width:400px;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:13.5px;line-height:1.35;text-align:center;min-height:52px;display:flex;flex-direction:column;justify-content:flex-end;gap:2px;background:rgba(74,49,32,0.07);border-radius:10px;padding:8px 12px}
 .log div{color:var(--ink-soft)}
@@ -665,6 +667,7 @@ const Tutorial = {
     { emblem:'card', title:'Как сыграть карту', num:'Одно касание + ещё одно', text:'Коснитесь карты — она <b>поднимется</b>. Коснитесь ещё раз — карта <b>сыграна</b>. За ход можно сыграть <b>не более 3 карт</b> — выбирайте приоритет, а не спам. Счётчик карт виден над рукой.' },
     { emblem:'shield', title:'Броня, статусы и угроза', num:'Защита и яды', text:'<b>Броня</b> ⛨ поглощает урон первой. Но <b>яд</b> ☠ и <b>горение</b> 🔥 бьют сквозь броню! <b>Благословение</b> ✨ снимает одну угрозу. Бейдж <b>«☠ под угрозой»</b> вспыхнет, если соперник может вас добить — защищайтесь или бейте первым.' },
     { emblem:'house', title:'Дома и реликвии', num:'Ваш стиль', text:'У каждого Дома свой характер: Медичи копят золото, Борджиа травят, Сфорца держат стену, Эсте ловят стихии. У каждого — особая <span class="g">реликвия</span>.' },
+    { emblem:'wheel', title:'Сострадание Фортуны', num:'Когда вы в беде', text:'Если ваш престиж падает до <b>10 или ниже</b>, Колесо проникается состраданием: оно благословит ту <span class="g">стихию</span>, которой у вас больше всего карт в руке. Отставание — не приговор, Фортуна изменчива.' },
   ],
   emblems:{
     crown:'<svg viewBox="0 0 80 80"><path d="M16 56 L12 28 L26 40 L40 20 L54 40 L68 28 L64 56 Z" fill="#D9AE3A" stroke="#241910" stroke-width="2.5" stroke-linejoin="round"/><circle cx="40" cy="20" r="3.5" fill="#8A2A2A" stroke="#241910" stroke-width="1.5"/><rect x="16" y="56" width="48" height="7" rx="2" fill="#B8901F" stroke="#241910" stroke-width="2"/></svg>',
@@ -971,7 +974,7 @@ function wheelSVG(){
 }
 
 /* ============ GAME ============ */
-let prevPrestige={0:30,1:30}, prevArmor={0:0,1:0}, prevStatus={0:{},1:{}}, prevThreat={0:false,1:false}, prevAngle=0, boardBuilt=false, selectedUid=null;
+let prevPrestige={0:30,1:30}, prevArmor={0:0,1:0}, prevStatus={0:{},1:{}}, prevThreat={0:false,1:false}, prevCompassion=false, prevAngle=0, boardBuilt=false, selectedUid=null;
 function renderGame(s){
   if(s.phase==='lobby') return;
   // leaving select/lobby
@@ -1049,7 +1052,12 @@ function updateBoard(s){
 
   if(Math.abs(s.wheel_angle-prevAngle)>0.01){ const w=$('#wheel'); if(w) w.style.transform=`rotate(${-s.wheel_angle}deg)`; prevAngle=s.wheel_angle; SFX.play('spin'); }
   const be=ELEM[s.blessed_element];
-  if(be){ const bt=$('#blessTag'); bt.textContent=`${be.glyph} Фортуна благоволит: ${be.ru}`; bt.style.background=be.color; }
+  if(be){ const bt=$('#blessTag');
+    bt.textContent = s.compassion ? `${be.glyph} Сострадание Фортуны: ${be.ru}` : `${be.glyph} Фортуна благоволит: ${be.ru}`;
+    bt.style.background=be.color; bt.classList.toggle('compassion',!!s.compassion);
+  }
+  if(s.compassion && !prevCompassion){ SFX.play('bless'); }
+  prevCompassion=!!s.compassion;
   $('#peekTag').textContent = s.peeked_ru ? `☉ Видение: следующим — ${s.peeked_ru}` : '';
 
   $('#log').innerHTML=(s.log||[]).slice(-4).map(l=>`<div>${esc(l)}</div>`).join('');
