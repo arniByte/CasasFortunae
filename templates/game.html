@@ -356,6 +356,13 @@ body.has-bg .avatar-opt.chosen .avatar-cap{color:var(--gold-bright)}
 .sb-blessing{background:#e0eef0;color:#1a6a6a;border-color:#3aa8a8}
 .sb-fortified{background:#dce4ea;color:#2a4a5a;border-color:#5a7a8a}
 
+.threat-row{margin-top:7px;display:flex;align-items:center;gap:6px;font-family:'Cinzel',serif;font-size:11px;font-weight:700;letter-spacing:.4px;padding:3px 10px;border-radius:11px;border:1.5px solid;text-transform:uppercase}
+.threat-danger{background:#f3dcdc;color:#7e1f1f;border-color:var(--madder);animation:threatThrob 1.05s ease-in-out infinite}
+.threat-kill{background:#efe6cf;color:#7e5e16;border-color:var(--gold-leaf);animation:threatThrob 1.4s ease-in-out infinite}
+.threat-pulse{font-size:13px;display:inline-block;animation:threatPulse 1.05s ease-in-out infinite}
+@keyframes threatThrob{0%,100%{box-shadow:0 0 0 0 rgba(126,34,34,0)}50%{box-shadow:0 0 9px 1px rgba(178,58,34,.55)}}
+@keyframes threatPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.28)}}
+
 .opp-hand{display:flex;gap:3px;justify-content:center;margin-top:7px}
 .card-back{width:24px;height:34px;border-radius:4px;background:repeating-linear-gradient(45deg,var(--ultramarine) 0 4px,var(--indigo-night) 4px 8px);border:1.5px solid var(--gold-leaf);box-shadow:0 1px 2px rgba(0,0,0,0.3)}
 
@@ -961,7 +968,7 @@ function wheelSVG(){
 }
 
 /* ============ GAME ============ */
-let prevPrestige={0:30,1:30}, prevArmor={0:0,1:0}, prevStatus={0:{},1:{}}, prevAngle=0, boardBuilt=false, selectedUid=null;
+let prevPrestige={0:30,1:30}, prevArmor={0:0,1:0}, prevStatus={0:{},1:{}}, prevThreat={0:false,1:false}, prevAngle=0, boardBuilt=false, selectedUid=null;
 function renderGame(s){
   if(s.phase==='lobby') return;
   // leaving select/lobby
@@ -994,7 +1001,7 @@ function buildBoard(s){
     </div>
     <div id="toastBox"></div>`;
   prevAngle=s.wheel_angle;
-  s.players.forEach(p=>{ prevPrestige[p.seat]=p.prestige; prevArmor[p.seat]=p.armor; prevStatus[p.seat]=statusMap(p); });
+  s.players.forEach(p=>{ prevPrestige[p.seat]=p.prestige; prevArmor[p.seat]=p.armor; prevStatus[p.seat]=statusMap(p); prevThreat[p.seat]=!!p.under_threat; });
   const w=$('#wheel'); if(w){ w.style.transition='none'; w.style.transform=`rotate(${-s.wheel_angle}deg)`; requestAnimationFrame(()=>{w.style.transition='';}); }
 }
 function me(s){return s.players[s.you];}
@@ -1012,6 +1019,12 @@ function statusHTML(p){
   const extra=p.statuses.length>4?`<span class="status-badge">+${p.statuses.length-4}</span>`:'';
   return `<div class="status-row">${shown.map(st=>`<span class="status-badge sb-${st.id}"><span class="sg">${st.glyph}</span>${st.stacks}</span>`).join('')}${extra}</div>`;
 }
+function threatHTML(p,isYou){
+  if(!p.under_threat) return '';
+  return isYou
+    ? `<div class="threat-row threat-danger"><span class="threat-pulse">☠</span> Вы под угрозой — соперник может добить</div>`
+    : `<div class="threat-row threat-kill"><span class="threat-pulse">⚔</span> Момент удара — врага можно добить</div>`;
+}
 
 function updateBoard(s){
   const o=opp(s), y=me(s), yourTurn=s.active_seat===s.you;
@@ -1024,7 +1037,7 @@ function updateBoard(s){
       <div class="p-portrait">${avatarHTML(o.avatar,o.seat)}</div>
       <div class="p-id"><div class="p-name">${esc(o.name)}</div><div class="p-house" style="color:${o.house_color}">${esc(o.house_name)} · ${o.hand_count} карт${o.debt?' · долг':''}</div></div>
       <div class="p-stats">${statHTML(o)}</div>
-    </div>${statusHTML(o)}`;
+    </div>${statusHTML(o)}${threatHTML(o,false)}`;
   $('#oppHand').innerHTML=Array.from({length:Math.min(o.hand_count,8)},()=>'<div class="card-back"></div>').join('');
 
   const tb=$('#turnBanner');
@@ -1045,7 +1058,7 @@ function updateBoard(s){
       <div class="p-portrait">${avatarHTML(y.avatar,y.seat)}</div>
       <div class="p-id"><div class="p-name">${esc(y.name)} <span style="font-size:10px;color:var(--gold-shadow)">(вы)</span></div><div class="p-house" style="color:${y.house_color}">${esc(y.house_name)} · колода ${y.deck_count}</div></div>
       <div class="p-stats">${statHTML(y)}</div>
-    </div>${statusHTML(y)}`;
+    </div>${statusHTML(y)}${threatHTML(y,true)}`;
 
   [o,y].forEach(p=>{
     const el=document.querySelector(`[data-pr="${p.seat}"]`);
@@ -1061,6 +1074,9 @@ function updateBoard(s){
     NEG_STATUS.forEach(k=>{ if((nowS[k]||0)>(prevS[k]||0)) negUp=true; });
     POS_STATUS.forEach(k=>{ if((nowS[k]||0)>(prevS[k]||0)) posUp=true; });
     if(negUp) SFX.play('poison'); else if(posUp) SFX.play('bless');
+    // threat newly appears on YOU -> a low warning tick
+    if(p.seat===s.you && p.under_threat && !prevThreat[p.seat]) SFX.play('tick');
+    prevThreat[p.seat]=!!p.under_threat;
     prevPrestige[p.seat]=p.prestige; prevArmor[p.seat]=p.armor; prevStatus[p.seat]=nowS;
   });
 
