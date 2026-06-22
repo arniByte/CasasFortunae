@@ -294,11 +294,22 @@ body.has-bg .avatar-opt.chosen .avatar-cap{color:var(--gold-bright)}
 .section-label::before{left:6%}
 .section-label::after{right:6%;background:linear-gradient(270deg,transparent,var(--gold-shadow))}
 .house-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.house-card{cursor:pointer;border-radius:14px;padding:16px 14px;background:var(--vellum);position:relative;overflow:hidden;border:2px solid var(--gold-shadow);box-shadow:var(--shadow-soft);transition:transform .12s,box-shadow .2s,border-color .2s}
-.house-card::before{content:"";position:absolute;top:0;left:0;right:0;height:5px;background:var(--house-c,#C9A227)}
+.house-card{cursor:pointer;border-radius:12px;padding:16px 14px 15px;background:
+    radial-gradient(circle at 26% 18%,rgba(186,160,110,.12),transparent 42%),
+    linear-gradient(168deg,var(--gesso),var(--vellum) 55%,var(--vellum-deep));
+  position:relative;overflow:hidden;border:1.5px solid var(--house-c,var(--gold-shadow));
+  box-shadow:var(--shadow-soft),inset 0 0 0 3px var(--vellum),inset 0 0 0 4px rgba(126,94,22,.32);
+  transition:transform .14s ease,box-shadow .24s,border-color .2s}
+.house-card::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:var(--house-c,#C9A227);opacity:.8}
+.house-card::after{content:"";position:absolute;inset:5px;border:1px solid var(--house-c,var(--gold-shadow));border-radius:8px;opacity:.22;pointer-events:none;filter:url(#inkS)}
 .house-card:active{transform:scale(0.98)}
-.house-card.chosen{border-color:var(--gold-bright);box-shadow:0 0 0 3px var(--gold-bright),var(--shadow-deep);transform:translateY(-2px)}
-.house-crest{width:46px;height:46px;margin-bottom:8px}
+.house-card.chosen{border-color:var(--gold-bright);
+  box-shadow:0 0 0 2px var(--gold-bright),0 0 16px 2px rgba(217,174,58,.5),var(--shadow-deep),inset 0 0 0 3px var(--vellum);
+  transform:translateY(-3px)}
+.house-card.chosen .house-crest{animation:crestStamp .5s cubic-bezier(.3,1.5,.5,1)}
+@keyframes crestStamp{0%{transform:scale(.7) rotate(-6deg);opacity:.4}55%{transform:scale(1.12) rotate(2deg)}100%{transform:scale(1) rotate(0)}}
+.house-crest{width:54px;height:62px;margin-bottom:7px;filter:drop-shadow(0 2px 3px rgba(20,14,6,.3))}
+.house-crest svg{width:100%;height:100%;display:block;overflow:visible}
 .house-name{font-family:'Cinzel',serif;font-weight:700;font-size:17px;color:var(--ink-black);line-height:1.1}
 .house-title{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:var(--house-c,#8A6A1C);margin-bottom:6px}
 .house-desc{font-family:'EB Garamond',serif;font-size:12.5px;line-height:1.3;color:var(--ink-soft)}
@@ -719,13 +730,55 @@ const Tutorial = {
 
 
 /* ---- House crests (SVG) ---- */
-const HOUSE_CREST = {
-  medici: '<svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="27" fill="none" stroke="#B8901F" stroke-width="2"/><circle cx="30" cy="18" r="5" fill="#8A2A2A"/><circle cx="22" cy="27" r="5" fill="#8A2A2A"/><circle cx="38" cy="27" r="5" fill="#8A2A2A"/><circle cx="26" cy="37" r="5" fill="#8A2A2A"/><circle cx="34" cy="37" r="5" fill="#8A2A2A"/><circle cx="30" cy="46" r="5" fill="#B8901F"/></svg>',
-  borgia: '<svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="27" fill="none" stroke="#6B2A40" stroke-width="2"/><path d="M30 14 L42 44 L18 44 Z" fill="none" stroke="#6B2A40" stroke-width="2"/><path d="M22 26 Q30 32 38 26" fill="none" stroke="#B8901F" stroke-width="2"/><circle cx="30" cy="34" r="3" fill="#8A2A2A"/></svg>',
-  sforza: '<svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="27" fill="none" stroke="#524A38" stroke-width="2"/><path d="M30 12 L30 48 M20 20 L40 20" stroke="#524A38" stroke-width="2.5" fill="none"/><path d="M22 40 Q30 48 38 40" fill="none" stroke="#B8901F" stroke-width="2"/><rect x="26" y="44" width="8" height="6" fill="#524A38"/></svg>',
-  este: '<svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="27" fill="none" stroke="#2E6A62" stroke-width="2"/><circle cx="30" cy="30" r="14" fill="none" stroke="#B8901F" stroke-width="1.5"/><path d="M30 16 L30 44 M16 30 L44 30 M20 20 L40 40 M40 20 L20 40" stroke="#2E6A62" stroke-width="1" opacity="0.7"/><circle cx="30" cy="30" r="5" fill="#C99A2E"/></svg>',
-  savonarola: '<svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="27" fill="none" stroke="#5A3320" stroke-width="2"/><path d="M30 9 L30 19 M26 13 L34 13" stroke="#5A3320" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M30 47 Q19 39 26 28 Q28 32 30 30 Q29 23 35 19 Q33 28 39 32 Q44 40 30 47 Z" fill="none" stroke="#B23A22" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><path d="M24 44 Q30 39 36 44" fill="none" stroke="#5A3320" stroke-width="1.5"/><circle cx="30" cy="38" r="2.6" fill="#C99A2E"/></svg>',
+/* ---- woodcut heraldic crests on an inked escutcheon (Phase 2 redesign) ---- */
+const CREST_CHARGE = {
+  // Medici — six palle (bezants)
+  medici:`<g fill="#B8901F" stroke="#241910" stroke-width="1.6" stroke-linejoin="round">
+    <circle cx="32" cy="20" r="4"/><circle cx="23" cy="28" r="4"/><circle cx="41" cy="28" r="4"/>
+    <circle cx="23" cy="38" r="4"/><circle cx="41" cy="38" r="4"/><circle cx="32" cy="46" r="4.4" fill="#8A2A2A"/>
+  </g>`,
+  // Borgia — the red bull (Bos), frontal head
+  borgia:`<g fill="#6B2A40" stroke="#241910" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M21 26 Q15 20 12 24 Q14 27 18 30 Q20 30 22 31 Z"/><path d="M43 26 Q49 20 52 24 Q50 27 46 30 Q44 30 42 31 Z"/>
+    <path d="M32 24 Q22 25 21 35 Q21 46 32 51 Q43 46 43 35 Q42 25 32 24 Z" fill="#7E2230"/>
+    <path d="M32 40 Q28 42 28 45 Q32 47 36 45 Q36 42 32 40 Z" fill="#241910"/>
+    <circle cx="27" cy="34" r="1.7" fill="#F4ECD6" stroke="none"/><circle cx="37" cy="34" r="1.7" fill="#F4ECD6" stroke="none"/>
+  </g>`,
+  // Sforza — the fortress tower (the wall)
+  sforza:`<g fill="#524A38" stroke="#241910" stroke-width="1.7" stroke-linejoin="round">
+    <path d="M21 50 V28 H22 V24 H26 V28 H29 V24 H35 V28 H38 V24 H42 V28 H43 V50 Z"/>
+    <path d="M30 50 V40 Q32 37 34 40 V50 Z" fill="#241910"/>
+    <rect x="25" y="32" width="4" height="5" fill="#241910"/><rect x="35" y="32" width="4" height="5" fill="#241910"/>
+  </g>`,
+  // Este — radiant sun (cosmos / the Wheel)
+  este:`<g stroke="#241910" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round">
+    <g stroke="#C99A2E" stroke-width="2.2">${Array.from({length:12},(_,i)=>{const a=i*30*Math.PI/180,x=32+Math.cos(a)*15,y=34+Math.sin(a)*15,x2=32+Math.cos(a)*9.5,y2=34+Math.sin(a)*9.5;return `<path d="M${x2.toFixed(1)} ${y2.toFixed(1)} L${x.toFixed(1)} ${y.toFixed(1)}"/>`}).join('')}</g>
+    <circle cx="32" cy="34" r="8" fill="#C99A2E"/><circle cx="32" cy="34" r="8" fill="none" stroke="#241910" stroke-width="1.6"/>
+    <path d="M28 33 Q30 36 28 38 M36 33 Q34 36 36 38 M30 40 Q32 42 34 40" fill="none" stroke="#241910" stroke-width="1.1"/>
+  </g>`,
+  // Savonarola — bonfire of the vanities + preacher's cross
+  savonarola:`<g stroke="#241910" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M32 14 V22 M28 17 H36" stroke="#5A3320" stroke-width="2" fill="none"/>
+    <path d="M32 52 Q20 44 27 32 Q29 37 32 34 Q30 26 37 21 Q35 31 41 35 Q47 44 32 52 Z" fill="#B23A22" stroke-width="1.8"/>
+    <path d="M32 47 Q27 43 30 36 Q31 39 33 37 Q32 32 36 29 Q35 36 38 39 Q41 44 32 47 Z" fill="#C99A2E" stroke-width="1.1"/>
+    <path d="M22 50 Q32 45 42 50" stroke="#5A3320" stroke-width="1.6" fill="none"/>
+  </g>`,
 };
+function houseCrest(id){
+  const tint = {medici:'#F1E6C8',borgia:'#EFE0D8',sforza:'#E9E2CC',este:'#DCE8DE',savonarola:'#EEE0CE'}[id]||'#E9DCBE';
+  const charge = CREST_CHARGE[id]||'';
+  const uid='cl_'+id;
+  return `<svg viewBox="0 0 64 74"><defs><clipPath id="${uid}"><path d="M10 10 H54 V33 Q54 56 32 68 Q10 56 10 33 Z"/></clipPath></defs>
+    <g filter="url(#inkS)">
+      <path d="M10 10 H54 V33 Q54 56 32 68 Q10 56 10 33 Z" fill="${tint}" stroke="#241910" stroke-width="2.2" stroke-linejoin="round"/>
+      <g clip-path="url(#${uid})" stroke="#241910" stroke-width="0.6" opacity="0.14">
+        <path d="M2 14 L62 44 M2 24 L62 54 M2 34 L62 64 M2 4 L62 34 M2 44 L40 70 M22 6 L62 30"/>
+      </g>
+      ${charge}
+      <path d="M10 10 H54 V33 Q54 56 32 68 Q10 56 10 33 Z" fill="none" stroke="#7E5E16" stroke-width="0.7" opacity="0.5" transform="translate(0,0) scale(0.96) translate(1.3,1.5)"/>
+    </g></svg>`;
+}
+const HOUSE_CREST = new Proxy({}, { get:(_,id)=>houseCrest(String(id)) });
 /* animated laurel branch — flanks the turn banner */
 function laurelSVG(){
   let leaves='';
