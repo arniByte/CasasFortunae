@@ -395,6 +395,68 @@ class GameState:
                 bonus *= 2
         return c["value"] + bonus
 
+    # ---- threat estimation (for "под угрозой" indicator) ----
+    def _est_damage(self, src, tgt, c):
+        """Сколько престижа снимет карта c (src→tgt), если сыграть её сейчас.
+        Чистая оценка без мутаций — зеркалит логику _deal. Благословение врага
+        поглощает удар целиком, поэтому считаем 0."""
+        kind, ex = c["kind"], c["extra"]
+        val = self._value(src, c)
+        if src.has_status("weaken"):
+            val = max(0, val - 1)
+        armor = tgt.armor
+        blessed = tgt.has_status("blessing")
+        fortified = tgt.has_status("fortified")
+
+        def through(amount, pierce=0):
+            if blessed:
+                return 0
+            absorbed = min(armor, amount)
+            return (amount - absorbed) + pierce
+
+        if kind in ("damage", "damage_status", "draw_damage"):
+            return through(val)
+        if kind == "damage_break":
+            if blessed:
+                return 0
+            return max(0, val - armor) if fortified else val
+        if kind == "damage_pierce":
+            return through(val, pierce=ex.get("pierce", 0))
+        if kind == "charge":
+            return through(val + (2 if src.armor > 0 else 0))
+        if kind == "surge":
+            streak = (self.last_blessed == self.blessed)
+            return through(val + 2 if streak else val, pierce=2)
+        if kind == "armor_damage":
+            return through(min(src.armor, 10))
+        if kind == "tax_enemy":
+            return through(ex.get("damage", 0))
+        if kind == "thorns":
+            return through(val)
+        return 0
+
+    def _lethal_threat(self, atk_seat, def_seat):
+        """True, если защитник рискует погибнуть к началу своего следующего хода:
+        либо собственный DoT (яд+горение) уже смертелен, либо у атакующего есть
+        карта по карману (с учётом дохода будущего хода), закрывающая его одним
+        ударом. Только булев сигнал — карты соперника не раскрываются."""
+        atk, dfn = self.players[atk_seat], self.players[def_seat]
+        if dfn.prestige <= 0 or self.phase != "playing":
+            return False
+        # DoT, который тикнет в начале хода защитника (яд и горение бьют сразу)
+        dot = dfn.statuses.get("poison", 0) + dfn.statuses.get("burn", 0)
+        if dot >= dfn.prestige:
+            return True
+        # Бюджет флоринов атакующего на его следующем ходу (доход + пассивки)
+        income = min(atk.turns_taken + 1, FLORIN_CAP)
+        if atk.house == "medici":
+            income += 2
+        budget = min(MAX_FLORINS, atk.florins + income + atk.invest_return)
+        for c in atk.hand:
+            if self._cost(atk, c) <= budget and self._est_damage(atk, dfn, c) >= dfn.prestige:
+                return True
+        return False
+
     # ---- play card ----
     def play_card(self, seat, uid):
         if self.phase != "playing": return "Игра окончена."
@@ -612,6 +674,7 @@ class GameState:
             statuses = [{"id": s, "glyph": STATUS_GLYPH.get(s,"?"), "ru": STATUS_RU.get(s,s), "stacks": v}
                         for s, v in p.statuses.items() if v > 0]
             relic_ready = (not p.relic_used_turn) if p.house != "borgia" else (not p.relic_used_game)
+            under_threat = self._lethal_threat(1 - p.seat, p.seat)
             pv = {
                 "seat": p.seat, "name": p.name, "house": p.house,
                 "house_name": HOUSES[p.house]["name"], "house_color": HOUSES[p.house]["color"],
@@ -619,6 +682,7 @@ class GameState:
                 "florins": p.florins, "hand_count": len(p.hand), "deck_count": len(p.deck),
                 "discard_count": len(p.discard), "debt": p.debt, "statuses": statuses,
                 "relic": HOUSES[p.house]["relic"], "relic_ready": relic_ready,
+                "under_threat": under_threat,
             }
             if p.seat == seat:
                 hand = []
