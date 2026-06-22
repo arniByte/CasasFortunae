@@ -81,6 +81,12 @@ HOUSES = {
         "relic": {"name": "Астролябия", "text": "Раз в ход: снять 1 яд (если есть) и получить +1 флорин; иначе — подсмотреть следующую стихию.", "id": "astrolabe"},
         "desc": "Оседлайте Колесо Фортуны. Взрывные ходы, когда стихия благословлена.",
     },
+    "savonarola": {
+        "id": "savonarola", "name": "Савонарола", "title": "Дом проповедников", "color": "#5A3320",
+        "passive": "Праведный гнев: пока ваш престиж ниже вражеского, ваши карты урона бьют на +1.",
+        "relic": {"name": "Власяница", "text": "Раз в ход: пожертвовать 2 престижа, нанести 4 урона в обход брони.", "id": "haircloth"},
+        "desc": "Костёр тщеславия. Жертвуйте своим — престижем и картами — ради испепеляющих всплесков. Чем хуже ваши дела, тем праведнее гнев.",
+    },
 }
 
 # ---------------------------------------------------------------------------
@@ -138,6 +144,13 @@ CATALOGUE = {
     "genius":     C("genius", "Покровитель гения", "neutral", 4, "Получить Вдохновение и взять 2 карты.", "status_draw", 0, house="este", extra={"status": "inspiration", "stacks": 1, "draw": 2}),
     "codex":      C("codex", "Кодекс Леонардо", "neutral", 5, "Взять 3 карты; следующие 3 карты на 1 дешевле.", "codex", 0, house="este", rarity="artifact"),
     "harmonic":   C("harmonic", "Гармония сфер", "neutral", 4, "Удвоить бонус благословения в этот ход.", "harmonic", 0, house="este"),
+    # Savonarola — жертва/самопожертвование
+    "immolate":   C("immolate", "Самосожжение", "fire", 3, "Пожертвовать 2 престижа; нанести 6 урона в обход брони.", "immolate", 6, house="savonarola", extra={"self": 2}),
+    "tithe":      C("tithe", "Десятина", "neutral", 1, "Пожертвовать 2 престижа; получить 4 флорина и взять карту.", "tithe", 4, house="savonarola", extra={"self": 2, "draw": 1}),
+    "penance":    C("penance", "Покаяние", "neutral", 2, "Сбросить карту; восстановить 4 престижа и получить Благословение.", "penance", 4, house="savonarola", extra={"discard": 1}),
+    "zeal":       C("zeal", "Огонь веры", "fire", 2, "Нанести 3 урона +1 за каждые 4 недостающего престижа.", "zeal", 3, house="savonarola", extra={"per": 4}),
+    "flagellant": C("flagellant", "Флагеллант", "neutral", 2, "Пожертвовать 2 престижа; наложить врагу Кровотечение 2 и взять карту.", "flagellant", 0, house="savonarola", extra={"self": 2, "stacks": 2, "draw": 1}),
+    "martyr":     C("martyr", "Мученичество", "neutral", 4, "Нанести урон, равный половине вашего престижа (в обход брони); потерять столько же.", "martyr", 0, house="savonarola", rarity="artifact"),
     # Neutral
     "jester":     C("jester", "Придворный шут", "neutral", 2, "Подсмотреть Колесо; можно перекрутить.", "peek_respin", 0),
     "merchant":   C("merchant", "Заём купца", "neutral", 0, "Получить 2 флорина в этот ход.", "gain_florin", 2),
@@ -155,6 +168,7 @@ def build_house_deck(house_id):
         "borgia":  ["chalice", "chalice", "lie", "apple", "stiletto", "silence", "jester"],
         "sforza":  ["pike", "charge", "charge", "riposte", "siege", "cannon_r", "jester"],
         "este":    ["astrologer", "surge", "surge", "genius", "codex", "harmonic", "jester"],
+        "savonarola": ["immolate", "tithe", "penance", "zeal", "zeal", "flagellant", "martyr"],
     }
     ids = shared + house_cards.get(house_id, [])
     deck = [deepcopy(CATALOGUE[cid]) for cid in ids if cid in CATALOGUE]
@@ -364,6 +378,11 @@ class GameState:
         # weaken on source reduces damage
         if source is not None and source.has_status("weaken"):
             amount = max(0, amount - 1)
+        # Savonarola «Праведный гнев»: +2 урона врагу, пока вы отстаёте по престижу
+        if source is not None and source is not target and source.house == "savonarola" \
+                and source.prestige < target.prestige and (amount + pierce) > 0:
+            if amount > 0: amount += 2
+            else: pierce += 2
         # blessing absorbs the whole instance
         if target.has_status("blessing") and (amount + pierce) > 0:
             target.add_status("blessing", -1)
@@ -610,6 +629,35 @@ class GameState:
             self.peeked_next = self._preview_spin(); p.draw(ex.get("draw",1), self.log); self.log.append(f"{p.name}: подсмотрел Колесо, +карта.")
         elif kind == "peek_respin":
             self.can_respin = True; self.peeked_next = self._preview_spin(); self.log.append(f"{p.name}: шут показал Колесо.")
+        elif kind == "immolate":
+            p.prestige -= ex.get("self", 0)
+            self._deal(opp, 0, pierce=val, source=p)
+            self.log.append(f"{p.name} → «{nm}»: −{ex.get('self',0)} себе, {val} в обход брони.")
+        elif kind == "tithe":
+            p.prestige -= ex.get("self", 0); p.florins += val; p.draw(ex.get("draw",1), self.log)
+            self.log.append(f"{p.name} → «{nm}»: −{ex.get('self',0)} престижа, +{val} флоринов, +карта.")
+        elif kind == "penance":
+            n = ex.get("discard", 1); dropped = 0
+            for _ in range(n):
+                # сбрасываем самую дорогую другую карту руки (кроме самой penance)
+                others = [x for x in p.hand if x.get("uid") != uid]
+                if not others: break
+                victim = max(others, key=lambda x: x["cost"])
+                p.hand.remove(victim); p.discard.append(victim); dropped += 1
+            p.prestige = min(START_PRESTIGE, p.prestige + val); self._apply_status(p, "blessing", 1)
+            self.log.append(f"{p.name} → «{nm}»: сброшено {dropped}, +{val} престижа, Благословение.")
+        elif kind == "zeal":
+            per = ex.get("per", 5); missing = max(0, START_PRESTIGE - p.prestige)
+            d = val + missing // per
+            self._deal(opp, d, source=p)
+            self.log.append(f"{p.name} → «{nm}»: {d} урона (гнев растёт в беде).")
+        elif kind == "flagellant":
+            p.prestige -= ex.get("self", 0); self._apply_status(opp, "bleed", ex.get("stacks", 2)); p.draw(ex.get("draw",1), self.log)
+            self.log.append(f"{p.name} → «{nm}»: −{ex.get('self',0)} себе, Кровотечение {ex.get('stacks',2)} врагу, +карта.")
+        elif kind == "martyr":
+            d = (p.prestige + 1) // 2
+            self._deal(opp, 0, pierce=d, source=p); p.prestige -= d
+            self.log.append(f"{p.name} → «{nm}»: {d} в обход брони, −{d} себе.")
 
         # Este Muse: playing a blessed-element card restores 1 prestige
         if p.house == "este" and c["element"] == self.blessed and c["element"] != "neutral":
@@ -659,6 +707,11 @@ class GameState:
             if not opp.has_status("poison"): return "На враге нет яда."
             opp.statuses["poison"] *= 2; p.relic_used_game = True
             self.log.append(f"{p.name}: Кантарелла удвоила яд до {opp.statuses['poison']}.")
+        elif h == "savonarola":
+            if p.relic_used_turn: return "Реликвия уже использована в этот ход."
+            if p.prestige <= 2: return "Слишком мало престижа для жертвы."
+            p.prestige -= 2; self._deal(opp, 0, pierce=4, source=p); p.relic_used_turn = True
+            self.log.append(f"{p.name}: Власяница — −2 себе, 4 урона в обход брони.")
         self._clamp_resources()
         self._check_over()
         return None

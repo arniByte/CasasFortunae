@@ -702,6 +702,7 @@ const HOUSE_CREST = {
   borgia: '<svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="27" fill="none" stroke="#6B2A40" stroke-width="2"/><path d="M30 14 L42 44 L18 44 Z" fill="none" stroke="#6B2A40" stroke-width="2"/><path d="M22 26 Q30 32 38 26" fill="none" stroke="#B8901F" stroke-width="2"/><circle cx="30" cy="34" r="3" fill="#8A2A2A"/></svg>',
   sforza: '<svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="27" fill="none" stroke="#524A38" stroke-width="2"/><path d="M30 12 L30 48 M20 20 L40 20" stroke="#524A38" stroke-width="2.5" fill="none"/><path d="M22 40 Q30 48 38 40" fill="none" stroke="#B8901F" stroke-width="2"/><rect x="26" y="44" width="8" height="6" fill="#524A38"/></svg>',
   este: '<svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="27" fill="none" stroke="#2E6A62" stroke-width="2"/><circle cx="30" cy="30" r="14" fill="none" stroke="#B8901F" stroke-width="1.5"/><path d="M30 16 L30 44 M16 30 L44 30 M20 20 L40 40 M40 20 L20 40" stroke="#2E6A62" stroke-width="1" opacity="0.7"/><circle cx="30" cy="30" r="5" fill="#C99A2E"/></svg>',
+  savonarola: '<svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="27" fill="none" stroke="#5A3320" stroke-width="2"/><path d="M30 9 L30 19 M26 13 L34 13" stroke="#5A3320" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M30 47 Q19 39 26 28 Q28 32 30 30 Q29 23 35 19 Q33 28 39 32 Q44 40 30 47 Z" fill="none" stroke="#B23A22" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><path d="M24 44 Q30 39 36 44" fill="none" stroke="#5A3320" stroke-width="1.5"/><circle cx="30" cy="38" r="2.6" fill="#C99A2E"/></svg>',
 };
 /* animated laurel branch — flanks the turn banner */
 function laurelSVG(){
@@ -929,7 +930,9 @@ const CARD_ART={
 function cardArtKey(c){
   const k=c.kind||'', el=c.element;
   if(c.rarity==='artifact') return 'star';
-  if(/poison/.test(k)) return 'skull';
+  if(/poison|flagellant/.test(k)) return 'skull';
+  if(k==='penance') return 'chalice';
+  if(k==='tithe') return 'coins';
   if(/heal/.test(k)) return 'chalice';
   if(/armor|thorns/.test(k)) return 'shield';
   if(/florin|invest|tax/.test(k)) return 'coins';
