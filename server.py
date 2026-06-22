@@ -50,6 +50,7 @@ START_HAND = 4
 FLORIN_CAP = 10        # макс. прирост флоринов за один ход (от числа взятых ходов)
 MAX_FLORINS = 15       # общий потолок накопленных флоринов — против "копи и взорви"
 MAX_ARMOR = 20         # потолок брони — против бесконечной стены
+CARDS_PER_TURN = 3     # лимит разыгранных карт за ход — выбор приоритета, а не спам
 
 # ---------------------------------------------------------------------------
 # Houses (factions)
@@ -199,6 +200,7 @@ class PlayerState:
         self.first_damage_done = False  # borgia venom tracking
         self.harmonic = False         # este: blessed bonus doubled this turn
         self.reshuffled = False
+        self.cards_played = 0         # сыграно карт в текущий ход (лимит CARDS_PER_TURN)
 
     def add_status(self, status, stacks):
         self.statuses[status] = self.statuses.get(status, 0) + stacks
@@ -262,6 +264,7 @@ class GameState:
         p.relic_used_turn = False
         p.first_damage_done = False
         p.harmonic = False
+        p.cards_played = 0
 
         # Wheel
         if opp.debt:
@@ -465,6 +468,8 @@ class GameState:
         opp = self.players[1 - seat]
         c = next((x for x in p.hand if x.get("uid") == uid), None)
         if not c: return "Карты нет в руке."
+        if p.cards_played >= CARDS_PER_TURN:
+            return f"Предел хода: не более {CARDS_PER_TURN} карт."
         cost = self._cost(p, c)
         if p.florins < cost: return "Недостаточно флоринов."
 
@@ -587,6 +592,7 @@ class GameState:
         # move to discard
         p.hand.remove(c)
         p.discard.append(c)
+        p.cards_played += 1
 
         self._clamp_resources()
         self._check_over()
@@ -669,6 +675,7 @@ class GameState:
             "peeked": self.peeked_next if seat == self.active else None,
             "peeked_ru": ELEMENT_RU.get(self.peeked_next, "") if (self.peeked_next and seat == self.active) else "",
             "winner": self.winner, "log": self.log[-8:], "players": [],
+            "cards_per_turn": CARDS_PER_TURN,
         }
         for p in self.players:
             statuses = [{"id": s, "glyph": STATUS_GLYPH.get(s,"?"), "ru": STATUS_RU.get(s,s), "stacks": v}
@@ -682,7 +689,7 @@ class GameState:
                 "florins": p.florins, "hand_count": len(p.hand), "deck_count": len(p.deck),
                 "discard_count": len(p.discard), "debt": p.debt, "statuses": statuses,
                 "relic": HOUSES[p.house]["relic"], "relic_ready": relic_ready,
-                "under_threat": under_threat,
+                "under_threat": under_threat, "cards_played": p.cards_played,
             }
             if p.seat == seat:
                 hand = []
