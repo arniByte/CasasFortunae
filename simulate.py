@@ -48,7 +48,7 @@ STRATEGIES = ["aggressor", "economist", "random", "adaptive"]
 # ---------------------------------------------------------------------------
 DAMAGE_KINDS = {"damage", "damage_status", "damage_break", "damage_pierce",
                 "charge", "surge", "draw_damage", "armor_damage",
-                "immolate", "zeal", "martyr"}
+                "immolate", "zeal", "martyr", "spend_damage"}
 PIERCE_KINDS = {"immolate", "martyr"}      # урон полностью в обход брони
 HEAL_KINDS   = {"heal", "heal_draw", "armor_heal", "florin_heal", "penance"}
 ARMOR_KINDS  = {"armor", "armor_status", "armor_heal", "armor_blessing"}
@@ -82,6 +82,8 @@ def est_damage(gs, p, opp, c):
         d = val + max(0, (START_PRESTIGE - p.prestige)) // per
     elif kind == "martyr":
         d = (p.prestige + 1) // 2
+    elif kind == "spend_damage":
+        d = min(p.florins, val)
     else:
         d = val
     # Savonarola «Праведный гнев»: +2 урона врагу, пока отстаёшь по престижу

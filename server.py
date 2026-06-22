@@ -126,6 +126,7 @@ CATALOGUE = {
     "bribe":      C("bribe", "Подкуп стражи", "neutral", 3, "Нанести 2 урона; следующая карта врага стоит на 2 дороже.", "tax_enemy", 2, house="medici", extra={"damage": 2}),
     "commission": C("commission", "Заказ мастеру", "neutral", 4, "Получить 4 флорина, 3 престижа и 1 карту.", "florin_heal", 4, house="medici", extra={"heal": 3, "draw": 1}),
     "banco":      C("banco", "Вклад банка", "neutral", 2, "Вложить 2 флорина — вернуть 6 в начале следующего хода.", "invest", 0, house="medici", extra={"invest": 2, "return": 6}),
+    "condotta":   C("condotta", "Военный подряд", "neutral", 1, "Нанять кондотьеров: потратить до 8 флоринов, нанести столько же урона.", "spend_damage", 8, house="medici"),
     # Borgia
     "chalice":    C("chalice", "Отравленный кубок", "neutral", 2, "Нанести 2 урона и наложить Яд 2.", "damage_status", 2, house="borgia", extra={"status": "poison", "stacks": 2}),
     "lie":        C("lie", "Лживый шёпот", "neutral", 1, "Наложить Ослабление 1 и взять карту.", "status_draw", 0, house="borgia", extra={"status": "weaken", "stacks": 1, "draw": 1}),
@@ -164,7 +165,7 @@ def build_house_deck(house_id):
               "ward", "ward", "rampart", "patience",
               "whisper", "whisper", "courier", "wind", "sleight"]
     house_cards = {
-        "medici":  ["loan_fl", "counting", "bribe", "commission", "banco", "merchant", "stone"],
+        "medici":  ["loan_fl", "counting", "bribe", "commission", "banco", "condotta", "stone"],
         "borgia":  ["chalice", "chalice", "lie", "apple", "stiletto", "silence", "jester"],
         "sforza":  ["pike", "charge", "charge", "riposte", "siege", "cannon_r", "jester"],
         "este":    ["astrologer", "surge", "surge", "genius", "codex", "harmonic", "jester"],
@@ -483,6 +484,15 @@ class GameState:
             return through(val)
         return 0
 
+    def _self_cost(self, p, c):
+        """Сколько престижа карта снимает с самого игрока (жертвы Савонаролы)."""
+        kind, ex = c["kind"], c["extra"]
+        if kind in ("immolate", "tithe", "flagellant"):
+            return ex.get("self", 0)
+        if kind == "martyr":
+            return (p.prestige + 1) // 2
+        return 0
+
     def _lethal_threat(self, atk_seat, def_seat):
         """True, если защитник рискует погибнуть к началу своего следующего хода:
         либо собственный DoT (яд+горение) уже смертелен, либо у атакующего есть
@@ -515,6 +525,10 @@ class GameState:
         if not c: return "Карты нет в руке."
         if p.cards_played >= CARDS_PER_TURN:
             return f"Предел хода: не более {CARDS_PER_TURN} карт."
+        # Жертвенные карты Савонаролы не должны приводить к самопоражению по ошибке
+        sc = self._self_cost(p, c)
+        if sc > 0 and sc >= p.prestige:
+            return "Эта жертва погубит вас — слишком мало престижа."
         cost = self._cost(p, c)
         if p.florins < cost: return "Недостаточно флоринов."
 
@@ -594,6 +608,9 @@ class GameState:
             if ex.get("damage"):
                 self._deal(opp, ex["damage"], source=p)
             self.log.append(f"{p.name}: карта врага дороже на {val}" + (f", {ex['damage']} урона" if ex.get('damage') else "") + ".")
+        elif kind == "spend_damage":
+            d = min(p.florins, val); p.florins -= d; self._deal(opp, d, source=p)
+            self.log.append(f"{p.name} → «{nm}»: потрачено {d} флоринов, {d} урона.")
         elif kind == "invest":
             if p.florins >= ex["invest"]:
                 p.florins -= ex["invest"]; p.invest_return += ex["return"]; self.log.append(f"{p.name}: вложил {ex['invest']}, вернётся {ex['return']}.")
