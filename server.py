@@ -75,8 +75,8 @@ HOUSES = {
     },
     "este": {
         "id": "este", "name": "Эсте", "title": "Дом покровителей", "color": "#2E6A62",
-        "passive": "Муза: благословлённые карты получают +2 вместо +1.",
-        "relic": {"name": "Астролябия", "text": "Раз в ход: подсмотреть следующий результат Колеса.", "id": "astrolabe"},
+        "passive": "Муза: благословлённые карты получают +2 вместо +1 и восстанавливают 1 престиж.",
+        "relic": {"name": "Астролябия", "text": "Раз в ход: снять 1 яд (если есть) и получить +1 флорин; иначе — подсмотреть следующую стихию.", "id": "astrolabe"},
         "desc": "Оседлайте Колесо Фортуны. Взрывные ходы, когда стихия благословлена.",
     },
 }
@@ -115,27 +115,27 @@ CATALOGUE = {
     # Medici
     "loan_fl":    C("loan_fl", "Флорентийский заём", "neutral", 0, "Получить 3 флорина в этот ход.", "gain_florin", 3, house="medici"),
     "counting":   C("counting", "Счётный дом", "neutral", 2, "Получить 2 флорина и взять карту.", "florin_draw", 2, house="medici", extra={"draw": 1}),
-    "bribe":      C("bribe", "Подкуп стражи", "neutral", 3, "Следующая карта врага стоит на 3 дороже.", "tax_enemy", 3, house="medici"),
-    "commission": C("commission", "Заказ мастеру", "neutral", 4, "Получить 4 флорина и 3 престижа.", "florin_heal", 4, house="medici", extra={"heal": 3}),
-    "banco":      C("banco", "Вклад банка", "neutral", 2, "Вложить 3 флорина — вернуть 5 в начале следующего хода.", "invest", 0, house="medici", extra={"invest": 3, "return": 5}),
+    "bribe":      C("bribe", "Подкуп стражи", "neutral", 3, "Нанести 2 урона; следующая карта врага стоит на 2 дороже.", "tax_enemy", 2, house="medici", extra={"damage": 2}),
+    "commission": C("commission", "Заказ мастеру", "neutral", 4, "Получить 4 флорина, 3 престижа и 1 карту.", "florin_heal", 4, house="medici", extra={"heal": 3, "draw": 1}),
+    "banco":      C("banco", "Вклад банка", "neutral", 2, "Вложить 2 флорина — вернуть 6 в начале следующего хода.", "invest", 0, house="medici", extra={"invest": 2, "return": 6}),
     # Borgia
     "chalice":    C("chalice", "Отравленный кубок", "neutral", 2, "Нанести 2 урона и наложить Яд 2.", "damage_status", 2, house="borgia", extra={"status": "poison", "stacks": 2}),
     "lie":        C("lie", "Лживый шёпот", "neutral", 1, "Наложить Ослабление 1 и взять карту.", "status_draw", 0, house="borgia", extra={"status": "weaken", "stacks": 1, "draw": 1}),
-    "apple":      C("apple", "Яблоко Борджиа", "neutral", 4, "Наложить Яд 3; удвоить, если враг уже отравлен.", "poison_double", 3, house="borgia", rarity="artifact"),
+    "apple":      C("apple", "Яблоко Борджиа", "neutral", 3, "Наложить Яд 3; удвоить, если враг уже отравлен.", "poison_double", 3, house="borgia", rarity="artifact"),
     "stiletto":   C("stiletto", "Стилет во тьме", "neutral", 3, "Нанести 3 урона и наложить Кровотечение.", "damage_status", 3, house="borgia", extra={"status": "bleed", "stacks": 1}),
     "silence":    C("silence", "Заговор молчания", "neutral", 5, "Наложить Яд 2; враг пропускает добор.", "poison_skip", 2, house="borgia"),
     # Sforza
-    "pike":       C("pike", "Стена пик", "neutral", 3, "Получить 4 брони и Укрепление.", "armor_status", 4, house="sforza", extra={"status": "fortified", "stacks": 1}),
+    "pike":       C("pike", "Стена пик", "neutral", 4, "Получить 4 брони и Укрепление.", "armor_status", 4, house="sforza", extra={"status": "fortified", "stacks": 1}),
     "charge":     C("charge", "Натиск кондотьера", "neutral", 3, "Нанести 4 урона; +2, если у вас есть броня.", "charge", 4, house="sforza"),
-    "riposte":    C("riposte", "Стойка рипоста", "neutral", 2, "Получить Благословение и 3 брони.", "armor_blessing", 3, house="sforza"),
+    "riposte":    C("riposte", "Стойка рипоста", "neutral", 2, "Получить Благословение и 2 брони.", "armor_blessing", 2, house="sforza"),
     "siege":      C("siege", "Осадная машина", "neutral", 5, "Нанести 6 урона, пробивая броню.", "damage_break", 6, house="sforza"),
     "cannon_r":   C("cannon_r", "Королевская пушка", "neutral", 6, "Нанести урон, равный вашей броне (броня остаётся).", "armor_damage", 0, house="sforza", rarity="artifact"),
     # Este
     "astrologer": C("astrologer", "Чтение астролога", "neutral", 2, "Подсмотреть Колесо и взять карту.", "peek_draw", 0, house="este", extra={"draw": 1}),
-    "surge":      C("surge", "Стихийный всплеск", "neutral", 3, "Нанести 4 урона; если стихия благословлена второй ход подряд — 6.", "surge", 4, house="este"),
+    "surge":      C("surge", "Стихийный всплеск", "neutral", 2, "Нанести 4 урона (2 в обход брони); стрик — 6 (+2 пробоя).", "surge", 4, house="este"),
     "genius":     C("genius", "Покровитель гения", "neutral", 4, "Получить Вдохновение и взять 2 карты.", "status_draw", 0, house="este", extra={"status": "inspiration", "stacks": 1, "draw": 2}),
     "codex":      C("codex", "Кодекс Леонардо", "neutral", 5, "Взять 3 карты; следующие 3 карты на 1 дешевле.", "codex", 0, house="este", rarity="artifact"),
-    "harmonic":   C("harmonic", "Гармония сфер", "neutral", 5, "Удвоить бонус благословения в этот ход.", "harmonic", 0, house="este"),
+    "harmonic":   C("harmonic", "Гармония сфер", "neutral", 4, "Удвоить бонус благословения в этот ход.", "harmonic", 0, house="este"),
     # Neutral
     "jester":     C("jester", "Придворный шут", "neutral", 2, "Подсмотреть Колесо; можно перекрутить.", "peek_respin", 0),
     "merchant":   C("merchant", "Заём купца", "neutral", 0, "Получить 2 флорина в этот ход.", "gain_florin", 2),
@@ -284,7 +284,7 @@ class GameState:
         p.florins += min(p.turns_taken, FLORIN_CAP)
         # House Medici passive
         if p.house == "medici":
-            p.florins += 1
+            p.florins += 2
         # invest payout
         if p.invest_return:
             p.florins += p.invest_return
@@ -292,7 +292,7 @@ class GameState:
             p.invest_return = 0
         # House Sforza passive
         if p.house == "sforza":
-            p.armor += 2
+            p.armor += 1
 
         # reset per-turn
         p.next_discount = 0
@@ -451,7 +451,7 @@ class GameState:
         elif kind == "armor_blessing":
             p.armor += val; self._apply_status(p, "blessing", 1); self.log.append(f"{p.name}: +{val} брони + Благословение.")
         elif kind == "armor_damage":
-            self._deal(opp, p.armor, source=p); self.log.append(f"{p.name}: пушка бьёт на {p.armor}.")
+            dmg = min(p.armor, 10); self._deal(opp, dmg, source=p); self.log.append(f"{p.name}: пушка бьёт на {dmg}.")
         elif kind == "charge":
             d = val + (2 if p.armor > 0 else 0); self._deal(opp, d, source=p); self.log.append(f"{p.name} → «{nm}»: {d} урона.")
         elif kind == "draw":
@@ -474,9 +474,14 @@ class GameState:
         elif kind == "florin_draw":
             p.florins += val; p.draw(ex.get("draw",1), self.log); self.log.append(f"{p.name}: +{val} флоринов, +карта.")
         elif kind == "florin_heal":
-            p.florins += val; p.prestige = min(START_PRESTIGE, p.prestige + ex.get("heal",0)); self.log.append(f"{p.name}: +{val} флоринов, +{ex.get('heal',0)} престижа.")
+            p.florins += val; p.prestige = min(START_PRESTIGE, p.prestige + ex.get("heal",0))
+            if ex.get("draw"): p.draw(ex["draw"], self.log)
+            self.log.append(f"{p.name}: +{val} флоринов, +{ex.get('heal',0)} престижа{', +карта' if ex.get('draw') else ''}.")
         elif kind == "tax_enemy":
-            opp.tax += val; self.log.append(f"{p.name}: карта врага дороже на {val}.")
+            opp.tax += val
+            if ex.get("damage"):
+                self._deal(opp, ex["damage"], source=p)
+            self.log.append(f"{p.name}: карта врага дороже на {val}" + (f", {ex['damage']} урона" if ex.get('damage') else "") + ".")
         elif kind == "invest":
             if p.florins >= ex["invest"]:
                 p.florins -= ex["invest"]; p.invest_return += ex["return"]; self.log.append(f"{p.name}: вложил {ex['invest']}, вернётся {ex['return']}.")
@@ -495,8 +500,8 @@ class GameState:
         elif kind == "surge":
             streak = (self.last_blessed == self.blessed)
             dmg = val + 2 if streak else val
-            self._deal(opp, dmg, source=p)
-            self.log.append(f"{p.name} → «{nm}»: {dmg} урона" + (" (стихия благословлена второй ход — усилено!)." if streak else "."))
+            self._deal(opp, dmg, pierce=2, source=p)
+            self.log.append(f"{p.name} → «{nm}»: {dmg}+2пробой" + (" (стрик!)." if streak else "."))
         elif kind == "codex":
             p.draw(3, self.log); p.discount_charges = 3; self.log.append(f"{p.name} → «{nm}»: +3 карты, скидка на 3 карты.")
         elif kind == "harmonic":
@@ -512,6 +517,10 @@ class GameState:
             self.peeked_next = self._preview_spin(); p.draw(ex.get("draw",1), self.log); self.log.append(f"{p.name}: подсмотрел Колесо, +карта.")
         elif kind == "peek_respin":
             self.can_respin = True; self.peeked_next = self._preview_spin(); self.log.append(f"{p.name}: шут показал Колесо.")
+
+        # Este Muse: playing a blessed-element card restores 1 prestige
+        if p.house == "este" and c["element"] == self.blessed and c["element"] != "neutral":
+            p.prestige = min(START_PRESTIGE, p.prestige + 1)
 
         # move to discard
         p.hand.remove(c)
@@ -543,8 +552,14 @@ class GameState:
             self.log.append(f"{p.name}: Знамя капитана → 4 урона.")
         elif h == "este":
             if p.relic_used_turn: return "Реликвия уже использована в этот ход."
-            self.peeked_next = self._preview_spin(); p.relic_used_turn = True
-            self.log.append(f"{p.name}: Астролябия показала Колесо.")
+            p.florins += 1
+            if p.has_status("poison"):
+                p.add_status("poison", -1)
+                self.log.append(f"{p.name}: Астролябия — снят 1 яд, +1 флорин.")
+            else:
+                self.peeked_next = self._preview_spin()
+                self.log.append(f"{p.name}: Астролябия — {ELEMENT_RU.get(self.peeked_next,'?')} грядёт, +1 флорин.")
+            p.relic_used_turn = True
         elif h == "borgia":
             if p.relic_used_game: return "Реликвия уже использована (раз за игру)."
             if not opp.has_status("poison"): return "На враге нет яда."
