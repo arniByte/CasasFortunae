@@ -419,6 +419,9 @@ body.has-bg .avatar-opt.chosen .avatar-cap{color:var(--gold-bright)}
 .act.debt{background:linear-gradient(180deg,var(--vermilion-bright),var(--madder))}
 .act.relic{background:linear-gradient(180deg,var(--porphyry),#4a1f3e)}
 .act.disabled{opacity:0.38;pointer-events:none;filter:grayscale(0.5)}
+.act.plays{flex:0 0 auto;min-width:62px;cursor:default;pointer-events:none;background:linear-gradient(180deg,var(--vellum),var(--vellum-deep));color:var(--brown);border:1.5px solid var(--gold-shadow);box-shadow:inset 0 1px 0 rgba(255,255,255,0.35)}
+.act.plays .plays-n{font-size:15px;font-weight:700;color:var(--gold-leaf);display:block;line-height:1}
+.act.plays.spent .plays-n{color:var(--madder)}
 .act small{display:block;font-size:9px;opacity:0.85;font-weight:400;margin-top:1px}
 
 /* toast */
@@ -659,8 +662,8 @@ const Tutorial = {
     { emblem:'crown', title:'Цель', num:'Дома Фортуны', text:'Два знатных Дома сошлись в дуэли. Снизьте <b>Престиж</b> ♛ соперника с 30 до нуля — и двор падёт к вашим ногам.' },
     { emblem:'wheel', title:'Колесо Фортуны', num:'Каждый ход', text:'В начале хода Колесо благословляет одну <span class="g">стихию</span>: карты этой стихии стоят на 1 <b>дешевле</b> и бьют на 1 <b>сильнее</b>. Лови волну Фортуны.' },
     { emblem:'florin', title:'Флорины', num:'Ресурс', text:'Каждый ход вы получаете <span class="g">флорины</span> ● — на них играются карты. Они копятся, но есть потолок — 15. Бесконечно тянуть с тратой не выйдет.' },
-    { emblem:'card', title:'Как сыграть карту', num:'Одно касание + ещё одно', text:'Коснитесь карты — она <b>поднимется</b>. Коснитесь ещё раз — карта <b>сыграна</b>. Доступные карты подсвечены, дорогие — затемнены.' },
-    { emblem:'shield', title:'Броня и статусы', num:'Защита и яды', text:'<b>Броня</b> ⛨ поглощает урон первой. Но <b>яд</b> ☠ и <b>горение</b> 🔥 бьют сквозь броню! <b>Благословение</b> ✨ снимает одну угрозу.' },
+    { emblem:'card', title:'Как сыграть карту', num:'Одно касание + ещё одно', text:'Коснитесь карты — она <b>поднимется</b>. Коснитесь ещё раз — карта <b>сыграна</b>. За ход можно сыграть <b>не более 3 карт</b> — выбирайте приоритет, а не спам. Счётчик карт виден над рукой.' },
+    { emblem:'shield', title:'Броня, статусы и угроза', num:'Защита и яды', text:'<b>Броня</b> ⛨ поглощает урон первой. Но <b>яд</b> ☠ и <b>горение</b> 🔥 бьют сквозь броню! <b>Благословение</b> ✨ снимает одну угрозу. Бейдж <b>«☠ под угрозой»</b> вспыхнет, если соперник может вас добить — защищайтесь или бейте первым.' },
     { emblem:'house', title:'Дома и реликвии', num:'Ваш стиль', text:'У каждого Дома свой характер: Медичи копят золото, Борджиа травят, Сфорца держат стену, Эсте ловят стихии. У каждого — особая <span class="g">реликвия</span>.' },
   ],
   emblems:{
@@ -1086,9 +1089,11 @@ function updateBoard(s){
 
 function renderHand(s,y,yourTurn){
   const hand=y.hand||[];
+  const playsLeft=(s.cards_per_turn||99)-(y.cards_played||0);
+  const atLimit=playsLeft<=0;
   $('#hand').innerHTML=hand.map(c=>{
     const el=ELEM[c.element]||{glyph:'✦',color:'#6B2A40'};
-    const afford=yourTurn&&y.florins>=c.eff_cost;
+    const afford=yourTurn&&y.florins>=c.eff_cost&&!atLimit;
     const isFree=c.eff_cost===0;
     const disc=c.eff_cost<c.cost;
     const art=c.rarity==='artifact';
@@ -1102,7 +1107,11 @@ function renderHand(s,y,yourTurn){
 }
 const ECON_KINDS=['gain_florin','florin_draw','florin_heal','invest'];
 function tapCard(uid,afford){
-  if(!afford){ toast('Сейчас нельзя сыграть'); return; }
+  if(!afford){
+    let msg='Сейчас нельзя сыграть';
+    try{ const st=lastState; if(st&&((st.cards_per_turn||99)-(st.players[st.you].cards_played||0))<=0) msg=`Предел хода — не более ${st.cards_per_turn} карт`; }catch(e){}
+    toast(msg); return;
+  }
   const card=document.querySelector(`.card[data-uid="${uid}"]`);
   if(selectedUid===uid){
     // immediate feedback by card type; the result sound comes from state diff
@@ -1116,7 +1125,10 @@ function tapCard(uid,afford){
 function renderActions(s,y,yourTurn){
   const relicReady=y.relic_ready&&yourTurn;
   const relicName=y.relic?y.relic.name:'Реликвия';
+  const cpt=s.cards_per_turn||0, left=Math.max(0,cpt-(y.cards_played||0));
+  const playsChip=yourTurn&&cpt?`<div class="act plays ${left<=0?'spent':''}"><span class="plays-n">${left}/${cpt}</span><small>карт за ход</small></div>`:'';
   $('#actions').innerHTML=`
+    ${playsChip}
     <div class="act relic ${relicReady?'':'disabled'}" onclick="${relicReady?"SFX.play('tick');send({type:'use_relic'})":''}">${esc(relicName)}<small>реликвия</small></div>
     <div class="act debt ${(!yourTurn||y.debt)?'disabled':''}" onclick="${(!yourTurn||y.debt)?'':"SFX.play('coin');send({type:'take_debt'})"}">Долг Фортуне<small>+3 флорина</small></div>
     ${s.can_respin?`<div class="act" onclick="SFX.play('spin');send({type:'respin'})">Перекрутить<small>Колесо</small></div>`:''}
