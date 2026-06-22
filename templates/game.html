@@ -866,7 +866,7 @@ function renderAvatars(){
 }
 
 function pickHouse(id){
-  chosenHouse=id; renderHouses(); updateReadyBtn();
+  chosenHouse=id; isReady=false; renderHouses(); updateReadyBtn();
   sendChoose(false);
 }
 function pickAvatar(av,i){ chosenAvatar=av; renderAvatars(); sendChoose(isReady); }
@@ -883,8 +883,9 @@ function maybeStart(){ if(lobbyData && lobbyData.both_ready){ send({type:'start'
 
 function renderLobbyOrSelect(m){
   lobbyData=m;
-  // ensure select is shown
-  if(!selectBuilt) showSelect();
+  // returning to the lobby after a finished/aborted game -> full reset to select
+  if(boardBuilt || document.getElementById('over')){ resetAll(); }
+  else if(!selectBuilt){ showSelect(); }
   // if both ready, trigger start (any client can)
   if(m.both_ready){ send({type:'start'}); }
   // update a small "opponent status" hint on the ready button area if present
