@@ -1063,6 +1063,10 @@ def new_code():
 def index():
     return render_template("game.html")
 
+@app.route("/polina")
+def polina():
+    return render_template("polina.html")
+
 @app.route("/api/houses")
 def api_houses():
     return jsonify({"houses": list(HOUSES.values())})

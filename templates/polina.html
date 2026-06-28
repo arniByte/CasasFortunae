@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Для Полины ♡</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blush:    #FFB6C1;
+    --rose:     #FF85A1;
+    --deep:     #C2185B;
+    --petal:    #FFF0F5;
+    --cream:    #FFF8FB;
+    --mauve:    #E91E63;
+    --lavender: #F8BBD9;
+    --soft:     #FCE4EC;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: linear-gradient(135deg, #FFF0F5 0%, #FFE4EC 40%, #FFF0F5 100%);
+    min-height: 100vh;
+    font-family: 'Lato', sans-serif;
+    color: #7b3a5a;
+    overflow-x: hidden;
+  }
+
+  /* ── Floating petals ── */
+  .petals {
+    position: fixed; inset: 0;
+    pointer-events: none; z-index: 0;
+    overflow: hidden;
+  }
+  .petal {
+    position: absolute;
+    top: -60px;
+    font-size: 1.4rem;
+    animation: fall linear infinite;
+    opacity: 0.7;
+  }
+  @keyframes fall {
+    0%   { transform: translateY(0) rotate(0deg);   opacity: 0; }
+    10%  { opacity: 0.8; }
+    90%  { opacity: 0.6; }
+    100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+  }
+
+  /* ── Main card ── */
+  .card {
+    position: relative; z-index: 1;
+    max-width: 680px;
+    margin: 40px auto 60px;
+    padding: 0 16px;
+  }
+
+  .card-inner {
+    background: white;
+    border-radius: 32px;
+    box-shadow:
+      0 8px 40px rgba(194, 24, 91, 0.12),
+      0 2px 8px  rgba(194, 24, 91, 0.08);
+    overflow: hidden;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: linear-gradient(135deg, #FF85A1 0%, #C2185B 100%);
+    padding: 48px 40px 36px;
+    text-align: center;
+    position: relative;
+  }
+
+  .header::after {
+    content: '';
+    position: absolute;
+    bottom: -1px; left: 0; right: 0;
+    height: 40px;
+    background: white;
+    clip-path: ellipse(55% 100% at 50% 100%);
+  }
+
+  .header-hearts {
+    font-size: 2rem;
+    letter-spacing: 12px;
+    margin-bottom: 16px;
+    animation: heartbeat 1.4s ease-in-out infinite;
+  }
+  @keyframes heartbeat {
+    0%, 100% { transform: scale(1); }
+    14%       { transform: scale(1.12); }
+    28%       { transform: scale(1); }
+    42%       { transform: scale(1.07); }
+    56%       { transform: scale(1); }
+  }
+
+  .header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 6vw, 3rem);
+    color: white;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.15);
+    line-height: 1.1;
+  }
+
+  .header h1 em {
+    font-style: italic;
+    color: #ffe0f0;
+  }
+
+  /* ── Body ── */
+  .body {
+    padding: 48px 40px 40px;
+  }
+
+  /* ASCII blocks */
+  .ascii-row {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin: 32px 0;
+  }
+
+  .ascii-box {
+    background: var(--soft);
+    border: 2px solid var(--lavender);
+    border-radius: 16px;
+    padding: 16px 24px;
+    text-align: center;
+    flex: 0 0 auto;
+    transition: transform 0.2s;
+  }
+  .ascii-box:hover { transform: scale(1.07) rotate(-1deg); }
+
+  .ascii-art {
+    font-family: 'Courier New', monospace;
+    font-size: 0.78rem;
+    line-height: 1.35;
+    color: #c2185b;
+    white-space: pre;
+    display: block;
+  }
+
+  .ascii-label {
+    font-size: 0.7rem;
+    color: #e91e63;
+    margin-top: 6px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  /* Big heart */
+  .big-heart-wrap {
+    text-align: center;
+    margin: 20px 0;
+  }
+  .big-heart {
+    font-family: 'Courier New', monospace;
+    font-size: 0.72rem;
+    line-height: 1.2;
+    color: #e91e63;
+    white-space: pre;
+    display: inline-block;
+    animation: heartbeat 2s ease-in-out infinite;
+    filter: drop-shadow(0 0 8px rgba(233,30,99,0.3));
+  }
+
+  /* Letter section */
+  .letter {
+    background: linear-gradient(135deg, #FFF0F5, #FCE4EC);
+    border-left: 4px solid var(--rose);
+    border-radius: 0 16px 16px 0;
+    padding: 28px 32px;
+    margin: 24px 0;
+    position: relative;
+  }
+  .letter::before {
+    content: '❝';
+    position: absolute;
+    top: -12px; left: 20px;
+    font-size: 3rem;
+    color: var(--rose);
+    opacity: 0.4;
+    font-family: serif;
+  }
+
+  .letter p {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.05rem;
+    line-height: 1.9;
+    color: #8b3a5a;
+    margin-bottom: 14px;
+  }
+  .letter p:last-child { margin-bottom: 0; }
+
+  .letter .sign {
+    text-align: right;
+    font-style: italic;
+    color: #c2185b;
+    font-size: 1.1rem;
+    margin-top: 20px;
+  }
+
+  /* Divider */
+  .divider {
+    text-align: center;
+    margin: 28px 0;
+    font-size: 1.4rem;
+    letter-spacing: 8px;
+    color: var(--rose);
+    opacity: 0.7;
+  }
+
+  /* CTA button */
+  .cta-wrap {
+    text-align: center;
+    margin: 36px 0 8px;
+  }
+
+  .cta {
+    display: inline-block;
+    background: linear-gradient(135deg, #FF85A1, #C2185B);
+    color: white;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem;
+    padding: 18px 48px;
+    border-radius: 50px;
+    text-decoration: none;
+    box-shadow: 0 6px 24px rgba(194,24,91,0.35);
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+    border: none;
+  }
+  .cta:hover {
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: 0 12px 32px rgba(194,24,91,0.45);
+  }
+
+  /* Footer */
+  .footer {
+    background: var(--soft);
+    padding: 24px 40px;
+    text-align: center;
+    border-top: 1px solid var(--lavender);
+  }
+  .footer p {
+    font-size: 0.82rem;
+    color: #d48fb0;
+    line-height: 1.8;
+  }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(194, 24, 91, 0.18);
+    backdrop-filter: blur(6px);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.show { display: flex; }
+
+  .modal {
+    background: white;
+    border-radius: 28px;
+    padding: 48px 40px;
+    text-align: center;
+    max-width: 420px;
+    width: 90%;
+    box-shadow: 0 24px 64px rgba(194,24,91,0.25);
+    animation: popIn 0.35s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  @keyframes popIn {
+    from { transform: scale(0.7); opacity: 0; }
+    to   { transform: scale(1);   opacity: 1; }
+  }
+
+  .modal h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    color: #c2185b;
+    margin-bottom: 16px;
+  }
+  .modal p {
+    font-size: 1rem;
+    color: #8b3a5a;
+    line-height: 1.7;
+    margin-bottom: 24px;
+  }
+  .modal-hearts {
+    font-size: 2.5rem;
+    letter-spacing: 10px;
+    margin-bottom: 24px;
+    display: block;
+  }
+  .modal .cta { font-size: 1rem; padding: 14px 36px; }
+
+  /* Sparkle trail */
+  .sparkle {
+    position: fixed;
+    pointer-events: none;
+    z-index: 999;
+    font-size: 1.2rem;
+    animation: sparkle-fade 0.8s ease-out forwards;
+  }
+  @keyframes sparkle-fade {
+    0%   { transform: translateY(0) scale(1); opacity: 1; }
+    100% { transform: translateY(-60px) scale(0.3); opacity: 0; }
+  }
+
+  /* Responsive */
+  @media (max-width: 540px) {
+    .card { margin: 16px auto 40px; }
+    .header { padding: 36px 24px 28px; }
+    .body { padding: 36px 24px 28px; }
+    .letter { padding: 20px 20px; }
+    .footer { padding: 20px 24px; }
+    .ascii-row { gap: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Floating petals -->
+<div class="petals" id="petals"></div>
+
+<!-- Main card -->
+<div class="card">
+  <div class="card-inner">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="header-hearts">♡ ♡ ♡</div>
+      <h1>Для&nbsp;<em>Полины</em></h1>
+    </div>
+
+    <!-- Body -->
+    <div class="body">
+
+      <!-- Big ASCII Heart -->
+      <div class="big-heart-wrap">
+        <span class="big-heart">
+  ██╗  ██╗███████╗ █████╗ ██████╗ ████████╗
+  ██║  ██║██╔════╝██╔══██╗██╔══██╗╚══██╔══╝
+  ███████║█████╗  ███████║██████╔╝   ██║
+  ██╔══██║██╔══╝  ██╔══██║██╔══██╗   ██║
+  ██║  ██║███████╗██║  ██║██║  ██║   ██║
+  ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝</span>
+      </div>
+
+      <!-- ASCII creatures row -->
+      <div class="ascii-row">
+        <div class="ascii-box">
+          <span class="ascii-art"> /\_/\
+( ^.^ )
+ > ♡ <
+(__)(__)</span>
+          <div class="ascii-label">котик</div>
+        </div>
+
+        <div class="ascii-box">
+          <span class="ascii-art">  (\ (\
+ ( -.-)
+ o_(")(")</span>
+          <div class="ascii-label">зайчик</div>
+        </div>
+
+        <div class="ascii-box">
+          <span class="ascii-art">  ♡   ♡
+ ♡♡♡♡♡♡♡
+  ♡♡♡♡♡
+   ♡♡♡
+    ♡</span>
+          <div class="ascii-label">сердечко</div>
+        </div>
+      </div>
+
+      <!-- Second row -->
+      <div class="ascii-row">
+        <div class="ascii-box">
+          <span class="ascii-art">  /\_____/\
+ / o     o \
+(     ♡     )
+ \  ~___~  /
+  \_______/
+   |     |
+  / \_/\_/ \</span>
+          <div class="ascii-label">котик-пышка</div>
+        </div>
+
+        <div class="ascii-box">
+          <span class="ascii-art">   (\ /)
+   ( ^_^)
+  /|   |\
+ (_|   |_)
+   |   |
+  (___/\___)</span>
+          <div class="ascii-label">зайка-стоя</div>
+        </div>
+      </div>
+
+      <div class="divider">♡ · ♡ · ♡</div>
+
+      <!-- Letter -->
+      <div class="letter">
+        <p>Привет, Полиночка&nbsp;☁️</p>
+        <p>
+          Я тут думал о тебе и понял — скучаю. Очень.
+          Знаешь, когда человека нет рядом, а он всё равно
+          каким-то образом везде — в мыслях, в мелочах,
+          в тех моментах, когда хочется поделиться чем-то смешным.
+        </p>
+        <p>
+          Хочу тебя увидеть. По-настоящему, вживую.
+          Посидеть, поговорить, посмеяться рядом.
+        </p>
+        <p>
+          Пожалуйста, встретимся? ♡
+        </p>
+        <div class="sign">— с теплом, твой зайчик 🐰</div>
+      </div>
+
+      <div class="divider">˗ˏˋ ♡ ˎˊ˗</div>
+
+      <!-- More ASCII -->
+      <div class="ascii-row">
+        <div class="ascii-box">
+          <span class="ascii-art">∧,,,∧
+( ♡ ♡ )
+(っ  っ
+|  _っ|
+`J  J´</span>
+          <div class="ascii-label">котик-обнимашка</div>
+        </div>
+
+        <div class="ascii-box">
+          <span class="ascii-art"> (\__/)
+ (•ω• )
+/つ  つ
+ ♡ ♡ ♡</span>
+          <div class="ascii-label">зайка с сердечком</div>
+        </div>
+
+        <div class="ascii-box">
+          <span class="ascii-art">˚ ༘♡ ⋆｡˚
+♡  ♡  ♡
+ ♡  ♡ ♡
+  ♡♡♡♡♡
+   ♡♡♡
+    ♡</span>
+          <div class="ascii-label">сердечный дождь</div>
+        </div>
+      </div>
+
+      <div class="cta-wrap">
+        <button class="cta" onclick="openModal()">
+          ♡&nbsp; Да, хочу встретиться! &nbsp;♡
+        </button>
+      </div>
+
+    </div><!-- /body -->
+
+    <!-- Footer -->
+    <div class="footer">
+      <p>♡ ♡ ♡<br>
+      Сделано с любовью и скукой по тебе<br>
+      <small style="font-size:0.75rem; opacity:0.7">нажми на кнопку 🐱</small></p>
+    </div>
+
+  </div><!-- /card-inner -->
+</div><!-- /card -->
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <span class="modal-hearts">🐰♡🐱</span>
+    <h2>Ура!! ♡♡♡</h2>
+    <p>
+      Ты лучшая. Просто лучшая.<br>
+      Жду тебя — скоро увидимся! 🌸
+    </p>
+    <div style="font-family:monospace; color:#e91e63; font-size:0.75rem; line-height:1.4; margin-bottom:24px;">
+  (\__/)  (\__/)<br>
+  (♡ ω♡) (♡ ω♡)<br>
+  /つ &nbsp; づ\/<br>
+  &nbsp;&nbsp;&nbsp;♡♡♡♡♡
+    </div>
+    <button class="cta" onclick="closeModal()">Закрыть ♡</button>
+  </div>
+</div>
+
+<script>
+// ── Floating petals ──
+const EMOJIS = ['🌸','🌷','💕','♡','🌺','✿','💗','🌹'];
+const petalsEl = document.getElementById('petals');
+
+function spawnPetal() {
+  const el = document.createElement('div');
+  el.className = 'petal';
+  el.textContent = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
+  el.style.left = Math.random() * 100 + 'vw';
+  el.style.fontSize = (0.9 + Math.random() * 1.2) + 'rem';
+  const dur = 5 + Math.random() * 8;
+  el.style.animationDuration = dur + 's';
+  el.style.animationDelay = Math.random() * 3 + 's';
+  petalsEl.appendChild(el);
+  setTimeout(() => el.remove(), (dur + 3) * 1000);
+}
+// Initial burst
+for (let i = 0; i < 18; i++) spawnPetal();
+// Continuous
+setInterval(spawnPetal, 700);
+
+// ── Cursor sparkles ──
+const SPARKLE_CHARS = ['♡','✿','⋆','✦','·','♪','✩'];
+document.addEventListener('mousemove', (e) => {
+  if (Math.random() > 0.25) return;
+  const el = document.createElement('div');
+  el.className = 'sparkle';
+  el.textContent = SPARKLE_CHARS[Math.floor(Math.random() * SPARKLE_CHARS.length)];
+  el.style.left = e.clientX + 'px';
+  el.style.top  = e.clientY + 'px';
+  el.style.color = `hsl(${330 + Math.random()*40}, 80%, 60%)`;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 800);
+});
+
+// ── Modal ──
+function openModal() {
+  document.getElementById('modal').classList.add('show');
+  // Burst of petals
+  for (let i = 0; i < 12; i++) setTimeout(spawnPetal, i * 60);
+}
+function closeModal() {
+  document.getElementById('modal').classList.remove('show');
+}
+function closeModalOutside(e) {
+  if (e.target === document.getElementById('modal')) closeModal();
+}
+
+// ── Keyboard ──
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeModal();
+});
+</script>
+</body>
+</html>
