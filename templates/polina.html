@@ -2,9 +2,11 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Для Полины ♡</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=Comfortaa:wght@400;600&family=Caveat:wght@600&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -12,540 +14,720 @@
     --blush:    #FFB6C1;
     --rose:     #FF85A1;
     --deep:     #C2185B;
-    --petal:    #FFF0F5;
-    --cream:    #FFF8FB;
     --mauve:    #E91E63;
-    --lavender: #F8BBD9;
-    --soft:     #FCE4EC;
+    --pale:     #FCE4EC;
+    --lav:      #F8BBD9;
+    --ink:      #7b3a5a;
+    --ink-soft: #8b3a5a;
+    --gold:     #E8B84B;
+    --glass:    rgba(255,255,255,0.55);
+    --glass-bd: rgba(255,255,255,0.7);
   }
 
-  html { scroll-behavior: smooth; }
+  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
 
   body {
-    background: linear-gradient(135deg, #FFF0F5 0%, #FFE4EC 40%, #FFF0F5 100%);
+    font-family: 'Comfortaa', sans-serif;
+    color: var(--ink);
     min-height: 100vh;
-    font-family: 'Lato', sans-serif;
-    color: #7b3a5a;
     overflow-x: hidden;
+    position: relative;
+    background: linear-gradient(135deg, #FFF0F5, #FFE4EC, #FCE4EC, #FFEEF3, #FFE0EC);
+    background-size: 400% 400%;
+    animation: bgShift 18s ease infinite;
+  }
+  @keyframes bgShift {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
   }
 
-  /* ── Floating petals ── */
-  .petals {
-    position: fixed; inset: 0;
-    pointer-events: none; z-index: 0;
-    overflow: hidden;
-  }
-  .petal {
+  /* ── Floating glow orbs ── */
+  .orbs { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+  .orb {
     position: absolute;
-    top: -60px;
-    font-size: 1.4rem;
-    animation: fall linear infinite;
-    opacity: 0.7;
+    border-radius: 50%;
+    filter: blur(70px);
+    opacity: 0.5;
   }
+  .orb.o1 { width: 260px; height: 260px; background: #FF9FB8; top: -60px; left: -60px; animation: drift1 22s ease-in-out infinite; }
+  .orb.o2 { width: 320px; height: 320px; background: #FFC2D8; bottom: -80px; right: -80px; animation: drift2 26s ease-in-out infinite; }
+  .orb.o3 { width: 200px; height: 200px; background: #FFB0C8; top: 40%; left: 50%; animation: drift3 20s ease-in-out infinite; }
+  @keyframes drift1 { 0%,100%{ transform: translate(0,0); } 50%{ transform: translate(40px,60px); } }
+  @keyframes drift2 { 0%,100%{ transform: translate(0,0); } 50%{ transform: translate(-50px,-40px); } }
+  @keyframes drift3 { 0%,100%{ transform: translate(-50%,0); } 50%{ transform: translate(-30%,-50px); } }
+
+  /* ── Falling petals ── */
+  .petals { position: fixed; inset: 0; pointer-events: none; z-index: 1; overflow: hidden; }
+  .petal { position: absolute; top: -60px; will-change: transform; }
   @keyframes fall {
-    0%   { transform: translateY(0) rotate(0deg);   opacity: 0; }
-    10%  { opacity: 0.8; }
-    90%  { opacity: 0.6; }
-    100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+    0%   { transform: translateY(0) translateX(0) rotate(0deg); opacity: 0; }
+    10%  { opacity: var(--op, 0.7); }
+    90%  { opacity: var(--op, 0.6); }
+    100% { transform: translateY(112vh) translateX(var(--drift,40px)) rotate(720deg); opacity: 0; }
   }
 
-  /* ── Main card ── */
-  .card {
-    position: relative; z-index: 1;
-    max-width: 680px;
-    margin: 40px auto 60px;
-    padding: 0 16px;
-  }
+  /* ── Layout ── */
+  .wrap { position: relative; z-index: 2; max-width: 480px; margin: 0 auto; padding: 0 14px 40px; }
 
-  .card-inner {
-    background: white;
-    border-radius: 32px;
-    box-shadow:
-      0 8px 40px rgba(194, 24, 91, 0.12),
-      0 2px 8px  rgba(194, 24, 91, 0.08);
-    overflow: hidden;
-  }
+  .reveal { opacity: 0; transform: translateY(24px); }
+  .reveal.in { animation: revealUp 0.7s cubic-bezier(.2,.7,.3,1) forwards; }
+  @keyframes revealUp { to { opacity: 1; transform: translateY(0); } }
 
   /* ── Header ── */
   .header {
-    background: linear-gradient(135deg, #FF85A1 0%, #C2185B 100%);
-    padding: 48px 40px 36px;
-    text-align: center;
     position: relative;
-  }
-
-  .header::after {
-    content: '';
-    position: absolute;
-    bottom: -1px; left: 0; right: 0;
-    height: 40px;
-    background: white;
-    clip-path: ellipse(55% 100% at 50% 100%);
-  }
-
-  .header-hearts {
-    font-size: 2rem;
-    letter-spacing: 12px;
-    margin-bottom: 16px;
-    animation: heartbeat 1.4s ease-in-out infinite;
-  }
-  @keyframes heartbeat {
-    0%, 100% { transform: scale(1); }
-    14%       { transform: scale(1.12); }
-    28%       { transform: scale(1); }
-    42%       { transform: scale(1.07); }
-    56%       { transform: scale(1); }
-  }
-
-  .header h1 {
-    font-family: 'Playfair Display', serif;
-    font-size: clamp(2rem, 6vw, 3rem);
-    color: white;
-    text-shadow: 0 2px 12px rgba(0,0,0,0.15);
-    line-height: 1.1;
-  }
-
-  .header h1 em {
-    font-style: italic;
-    color: #ffe0f0;
-  }
-
-  /* ── Body ── */
-  .body {
-    padding: 48px 40px 40px;
-  }
-
-  /* ASCII blocks */
-  .ascii-row {
-    display: flex;
-    gap: 24px;
-    justify-content: center;
-    flex-wrap: wrap;
-    margin: 32px 0;
-  }
-
-  .ascii-box {
-    background: var(--soft);
-    border: 2px solid var(--lavender);
-    border-radius: 16px;
-    padding: 16px 24px;
+    margin: 0 -14px 8px;
+    padding: 52px 28px 56px;
     text-align: center;
-    flex: 0 0 auto;
-    transition: transform 0.2s;
+    color: #fff;
+    background: linear-gradient(135deg, #FF85A1 0%, #E91E63 55%, #C2185B 100%);
+    border-radius: 0 0 36px 36px;
+    box-shadow: 0 14px 40px -12px rgba(194,24,91,0.5);
+    overflow: hidden;
   }
-  .ascii-box:hover { transform: scale(1.07) rotate(-1deg); }
+  .header::before {
+    content: '';
+    position: absolute; top: 0; left: -60%;
+    width: 60%; height: 100%;
+    background: linear-gradient(100deg, transparent, rgba(255,255,255,0.35), transparent);
+    transform: skewX(-18deg);
+    animation: shimmer 5.5s ease-in-out infinite;
+  }
+  @keyframes shimmer { 0%{ left:-60%; } 55%,100%{ left:120%; } }
 
+  .h-hearts { font-size: 1.7rem; letter-spacing: 10px; animation: beat 1.5s ease-in-out infinite; }
+  @keyframes beat { 0%,100%{transform:scale(1);} 18%{transform:scale(1.15);} 32%{transform:scale(1);} 46%{transform:scale(1.08);} }
+
+  .h-title {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-weight: 700;
+    font-size: clamp(2.3rem, 9vw, 3.2rem);
+    line-height: 1.05;
+    margin: 12px 0 6px;
+    background: linear-gradient(90deg, #FFF4F8, #FFE08A, #FFFFFF, #FFD6E6, #FFF4F8);
+    background-size: 250% auto;
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent; color: transparent;
+    animation: sheen 6s linear infinite;
+    text-shadow: 0 2px 18px rgba(255,255,255,0.25);
+    filter: drop-shadow(0 3px 10px rgba(123,30,60,0.35));
+  }
+  @keyframes sheen { to { background-position: 250% center; } }
+  .h-sub { font-family: 'Caveat', cursive; font-size: 1.5rem; opacity: 0.95; }
+
+  /* ── Glass cards ── */
+  .glass {
+    background: var(--glass);
+    backdrop-filter: blur(14px) saturate(1.3);
+    -webkit-backdrop-filter: blur(14px) saturate(1.3);
+    border: 1px solid var(--glass-bd);
+    border-radius: 22px;
+    box-shadow: 0 8px 30px -12px rgba(194,24,91,0.28), inset 0 1px 0 rgba(255,255,255,0.6);
+  }
+
+  /* ── ASCII boxes ── */
+  .ascii-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 22px 0; }
+  .ascii-box { padding: 16px 10px 12px; text-align: center; transition: transform .25s; }
+  .ascii-box:active { transform: scale(0.97); }
+  .ascii-box:hover { transform: translateY(-3px) rotate(-1deg); }
   .ascii-art {
     font-family: 'Courier New', monospace;
-    font-size: 0.78rem;
-    line-height: 1.35;
-    color: #c2185b;
-    white-space: pre;
-    display: block;
+    font-size: 0.82rem; line-height: 1.35;
+    color: var(--deep); white-space: pre; display: block;
+    text-shadow: 0 1px 6px rgba(255,133,161,0.4);
   }
+  .ascii-label { font-family:'Caveat',cursive; font-size: 1.15rem; color: var(--mauve); margin-top: 8px; }
 
-  .ascii-label {
-    font-size: 0.7rem;
-    color: #e91e63;
-    margin-top: 6px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-  }
-
-  /* Big heart */
-  .big-heart-wrap {
-    text-align: center;
-    margin: 20px 0;
-  }
+  /* ── Big heart ── */
+  .big-heart-wrap { text-align: center; margin: 26px 0 8px; }
   .big-heart {
-    font-family: 'Courier New', monospace;
-    font-size: 0.72rem;
-    line-height: 1.2;
-    color: #e91e63;
-    white-space: pre;
-    display: inline-block;
-    animation: heartbeat 2s ease-in-out infinite;
-    filter: drop-shadow(0 0 8px rgba(233,30,99,0.3));
+    font-family:'Courier New',monospace; font-size: 0.72rem; line-height: 1.2;
+    color: var(--mauve); white-space: pre; display: inline-block;
+    animation: beat 2s ease-in-out infinite;
+    filter: drop-shadow(0 0 10px rgba(233,30,99,0.35));
   }
 
-  /* Letter section */
-  .letter {
-    background: linear-gradient(135deg, #FFF0F5, #FCE4EC);
-    border-left: 4px solid var(--rose);
-    border-radius: 0 16px 16px 0;
-    padding: 28px 32px;
-    margin: 24px 0;
-    position: relative;
-  }
+  .divider { text-align: center; margin: 24px 0; font-size: 1.2rem; letter-spacing: 8px; color: var(--rose); opacity: 0.8; }
+
+  /* ── Letter ── */
+  .letter { padding: 30px 26px 26px; margin: 8px 0 24px; position: relative; border-left: 4px solid var(--rose); }
   .letter::before {
-    content: '❝';
-    position: absolute;
-    top: -12px; left: 20px;
-    font-size: 3rem;
-    color: var(--rose);
-    opacity: 0.4;
-    font-family: serif;
+    content: '❝'; position: absolute; top: -6px; left: 16px;
+    font-size: 2.8rem; color: var(--rose); opacity: 0.35; font-family: serif;
   }
-
-  .letter p {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.05rem;
-    line-height: 1.9;
-    color: #8b3a5a;
-    margin-bottom: 14px;
+  .letter p { font-family:'Playfair Display',serif; font-size: 1.04rem; line-height: 1.85; color: var(--ink-soft); margin-bottom: 13px; }
+  .letter p:first-of-type::first-letter {
+    font-size: 2.6rem; font-weight: 700; float: left; line-height: 0.8;
+    padding: 6px 8px 0 0; color: var(--deep);
   }
   .letter p:last-child { margin-bottom: 0; }
+  .letter .sign { text-align: right; font-family:'Caveat',cursive; font-size: 1.55rem; color: var(--deep); margin-top: 16px; }
 
-  .letter .sign {
-    text-align: right;
-    font-style: italic;
-    color: #c2185b;
-    font-size: 1.1rem;
-    margin-top: 20px;
+  /* ── Section title ── */
+  .sec-title {
+    text-align: center; font-family:'Playfair Display',serif; font-weight: 700;
+    font-size: 1.6rem; color: var(--deep); margin: 32px 0 6px;
   }
+  .sec-sub { text-align:center; font-family:'Caveat',cursive; font-size: 1.25rem; color: var(--mauve); margin-bottom: 18px; }
 
-  /* Divider */
-  .divider {
-    text-align: center;
-    margin: 28px 0;
-    font-size: 1.4rem;
-    letter-spacing: 8px;
-    color: var(--rose);
-    opacity: 0.7;
+  /* ── Activity tiles ── */
+  .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .tile {
+    padding: 22px 12px; text-align: center; cursor: pointer;
+    transition: transform .2s, box-shadow .2s;
+    border: none; font-family: inherit; color: var(--ink);
   }
+  .tile:active { transform: scale(0.96); }
+  .tile:hover { transform: translateY(-4px); box-shadow: 0 16px 36px -14px rgba(194,24,91,0.45), inset 0 1px 0 rgba(255,255,255,0.6); }
+  .tile-ico { font-size: 2.6rem; display: block; filter: drop-shadow(0 4px 8px rgba(194,24,91,0.25)); }
+  .tile-lbl { margin-top: 10px; font-weight: 600; font-size: 0.92rem; color: var(--deep); }
+  .tile-hint { font-family:'Caveat',cursive; font-size: 1.05rem; color: var(--mauve); margin-top: 2px; }
 
-  /* CTA button */
-  .cta-wrap {
-    text-align: center;
-    margin: 36px 0 8px;
-  }
-
-  .cta {
-    display: inline-block;
+  /* ── Buttons ── */
+  .btn {
+    display: inline-block; border: none; cursor: pointer;
+    font-family:'Playfair Display',serif; color: #fff;
     background: linear-gradient(135deg, #FF85A1, #C2185B);
-    color: white;
-    font-family: 'Playfair Display', serif;
-    font-size: 1.15rem;
-    padding: 18px 48px;
-    border-radius: 50px;
-    text-decoration: none;
-    box-shadow: 0 6px 24px rgba(194,24,91,0.35);
-    transition: transform 0.2s, box-shadow 0.2s;
-    cursor: pointer;
-    border: none;
+    border-radius: 50px; box-shadow: 0 6px 22px rgba(194,24,91,0.4), inset 0 1px 0 rgba(255,255,255,0.4);
+    transition: transform .2s, box-shadow .2s; position: relative; overflow: hidden;
   }
-  .cta:hover {
-    transform: translateY(-3px) scale(1.03);
-    box-shadow: 0 12px 32px rgba(194,24,91,0.45);
+  .btn::after {
+    content:''; position:absolute; top:0; left:-70%; width:50%; height:100%;
+    background: linear-gradient(100deg, transparent, rgba(255,255,255,0.45), transparent);
+    transform: skewX(-18deg);
   }
+  .btn:hover { transform: translateY(-2px) scale(1.03); box-shadow: 0 12px 32px rgba(194,24,91,0.5), inset 0 1px 0 rgba(255,255,255,0.4); }
+  .btn:hover::after { animation: btnsheen .8s ease; }
+  .btn:active { transform: scale(0.97); }
+  @keyframes btnsheen { to { left: 130%; } }
 
-  /* Footer */
-  .footer {
-    background: var(--soft);
-    padding: 24px 40px;
-    text-align: center;
-    border-top: 1px solid var(--lavender);
-  }
-  .footer p {
-    font-size: 0.82rem;
-    color: #d48fb0;
-    line-height: 1.8;
-  }
+  .cta-wrap { text-align: center; margin: 34px 0 10px; }
+  .cta-main { font-size: 1.15rem; padding: 18px 40px; min-height: 56px; }
 
-  /* Modal */
-  .modal-overlay {
-    display: none;
-    position: fixed; inset: 0;
-    background: rgba(194, 24, 91, 0.18);
-    backdrop-filter: blur(6px);
-    z-index: 100;
-    align-items: center;
-    justify-content: center;
-  }
-  .modal-overlay.show { display: flex; }
+  /* ── Footer ── */
+  .footer { margin: 30px -14px 0; padding: 26px 20px; text-align: center; border-radius: 22px 22px 0 0; }
+  .footer .fh { letter-spacing: 8px; color: var(--mauve); font-size: 1.1rem; }
+  .footer p { font-family:'Caveat',cursive; font-size: 1.2rem; color: var(--ink-soft); margin-top: 8px; }
 
+  /* ── Modal shell ── */
+  .overlay {
+    display: none; position: fixed; inset: 0; z-index: 100;
+    background: rgba(194,24,91,0.22); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    align-items: center; justify-content: center; padding: 16px;
+  }
+  .overlay.show { display: flex; }
   .modal {
-    background: white;
-    border-radius: 28px;
-    padding: 48px 40px;
-    text-align: center;
-    max-width: 420px;
-    width: 90%;
-    box-shadow: 0 24px 64px rgba(194,24,91,0.25);
-    animation: popIn 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    position: relative; width: 100%; max-width: 420px;
+    max-height: 90vh; overflow-y: auto; -webkit-overflow-scrolling: touch;
+    border-radius: 28px; padding: 34px 24px 28px; text-align: center;
+    background: rgba(255,255,255,0.82);
+    backdrop-filter: blur(20px) saturate(1.4); -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    border: 1px solid rgba(255,255,255,0.8);
+    box-shadow: 0 30px 70px -20px rgba(194,24,91,0.5);
+    animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1);
   }
-  @keyframes popIn {
-    from { transform: scale(0.7); opacity: 0; }
-    to   { transform: scale(1);   opacity: 1; }
+  @keyframes popIn { from{ transform: scale(0.7); opacity: 0; } to{ transform: scale(1); opacity: 1; } }
+  .modal h2 { font-family:'Playfair Display',serif; font-style: italic; font-size: 1.8rem; color: var(--deep); margin-bottom: 12px; }
+  .modal p.lead { font-size: 0.98rem; line-height: 1.7; color: var(--ink-soft); margin-bottom: 20px; }
+  .x-close {
+    position: absolute; top: 12px; right: 14px; width: 38px; height: 38px;
+    border: none; border-radius: 50%; cursor: pointer; font-size: 1.1rem;
+    background: rgba(255,255,255,0.7); color: var(--deep); line-height: 1;
+    box-shadow: 0 2px 8px rgba(194,24,91,0.2);
   }
+  .x-close:active { transform: scale(0.9); }
+  .modal-hearts { font-size: 2.6rem; letter-spacing: 8px; display: block; margin-bottom: 14px; }
 
-  .modal h2 {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.8rem;
-    color: #c2185b;
-    margin-bottom: 16px;
+  /* ── Catch game ── */
+  #catchField {
+    position: relative; height: 340px; margin: 8px 0 14px; overflow: hidden;
+    border-radius: 18px; background: linear-gradient(180deg, #FFF6FA, #FCE4EC);
+    border: 1px solid var(--lav);
   }
-  .modal p {
-    font-size: 1rem;
-    color: #8b3a5a;
-    line-height: 1.7;
-    margin-bottom: 24px;
-  }
-  .modal-hearts {
-    font-size: 2.5rem;
-    letter-spacing: 10px;
-    margin-bottom: 24px;
-    display: block;
-  }
-  .modal .cta { font-size: 1rem; padding: 14px 36px; }
+  .ch-item { position: absolute; font-size: 2rem; cursor: pointer; user-select: none; will-change: transform; }
+  @keyframes floatUp { from { transform: translateY(0); } to { transform: translateY(-380px); } }
+  .ch-pop { animation: chpop .3s ease forwards; pointer-events: none; }
+  @keyframes chpop { to { transform: scale(2); opacity: 0; } }
+  .ch-hud { display: flex; justify-content: space-between; font-weight: 600; color: var(--deep); margin-bottom: 6px; padding: 0 4px; }
 
-  /* Sparkle trail */
-  .sparkle {
-    position: fixed;
-    pointer-events: none;
-    z-index: 999;
-    font-size: 1.2rem;
-    animation: sparkle-fade 0.8s ease-out forwards;
+  /* ── Wheel ── */
+  .wheel-stage { position: relative; width: 260px; height: 260px; margin: 6px auto 16px; }
+  .wheel { width: 100%; height: 100%; border-radius: 50%; transition: transform 4.4s cubic-bezier(.17,.67,.2,1); box-shadow: 0 10px 30px -8px rgba(194,24,91,0.5); }
+  .wheel-pin {
+    position: absolute; top: -6px; left: 50%; transform: translateX(-50%);
+    width: 0; height: 0; border-left: 14px solid transparent; border-right: 14px solid transparent;
+    border-top: 24px solid var(--deep); z-index: 3; filter: drop-shadow(0 2px 3px rgba(0,0,0,.25));
   }
-  @keyframes sparkle-fade {
-    0%   { transform: translateY(0) scale(1); opacity: 1; }
-    100% { transform: translateY(-60px) scale(0.3); opacity: 0; }
+  .wheel-cap {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+    width: 46px; height: 46px; border-radius: 50%; background: #fff;
+    border: 3px solid var(--rose); z-index: 2; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;
+    box-shadow: 0 2px 8px rgba(194,24,91,0.3);
   }
+  .wheel-result { font-family:'Playfair Display',serif; font-size: 1.15rem; color: var(--deep); min-height: 1.5em; margin: 4px 0 14px; }
 
-  /* Responsive */
-  @media (max-width: 540px) {
-    .card { margin: 16px auto 40px; }
-    .header { padding: 36px 24px 28px; }
-    .body { padding: 36px 24px 28px; }
-    .letter { padding: 20px 20px; }
-    .footer { padding: 20px 24px; }
-    .ascii-row { gap: 12px; }
+  /* ── Envelope ── */
+  .env { font-size: 4.5rem; cursor: pointer; transition: transform .3s; display: inline-block; margin: 10px 0; }
+  .env:active { transform: scale(0.92); }
+  .env.opened { animation: envpop .5s ease; }
+  @keyframes envpop { 0%{transform:scale(1);} 50%{transform:scale(1.25) rotate(-6deg);} 100%{transform:scale(1);} }
+  .note-card {
+    min-height: 96px; display: flex; align-items: center; justify-content: center;
+    padding: 20px 18px; margin: 8px 0 16px; border-radius: 18px;
+    background: linear-gradient(135deg, #FFF6FA, #FCE4EC); border: 1px dashed var(--rose);
+    font-family:'Playfair Display',serif; font-size: 1.12rem; font-style: italic; color: var(--deep);
+    transition: transform .4s, opacity .4s;
+  }
+  .note-card.flip { animation: flipNote .5s ease; }
+  @keyframes flipNote { 0%{ transform: rotateY(0); } 50%{ transform: rotateY(90deg); opacity: 0.3; } 100%{ transform: rotateY(0); opacity: 1; } }
+
+  /* ── Memory ── */
+  .mem-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 9px; margin: 8px 0 14px; }
+  .mem-card {
+    aspect-ratio: 3/4; border-radius: 12px; cursor: pointer; position: relative;
+    transform-style: preserve-3d; transition: transform .4s; min-height: 56px;
+  }
+  .mem-card.flipped, .mem-card.matched { transform: rotateY(180deg); }
+  .mem-face {
+    position: absolute; inset: 0; border-radius: 12px; display: flex; align-items: center; justify-content: center;
+    backface-visibility: hidden; -webkit-backface-visibility: hidden; font-size: 1.7rem;
+  }
+  .mem-back { background: linear-gradient(135deg, #FF85A1, #C2185B); color: #fff; font-size: 1.4rem; box-shadow: inset 0 1px 0 rgba(255,255,255,0.4); }
+  .mem-front { background: #FFF6FA; border: 2px solid var(--lav); transform: rotateY(180deg); }
+  .mem-card.matched .mem-front { border-color: var(--gold); box-shadow: 0 0 12px rgba(232,184,75,0.6); }
+  .mem-hud { font-weight: 600; color: var(--deep); margin-bottom: 8px; }
+
+  /* ── Confetti ── */
+  .confetti { position: fixed; top: -20px; z-index: 9999; pointer-events: none; will-change: transform; }
+  @keyframes confFall { to { transform: translateY(105vh) rotate(540deg); opacity: 0; } }
+
+  /* ── Sparkle cursor ── */
+  .sparkle { position: fixed; pointer-events: none; z-index: 9998; will-change: transform; }
+  @keyframes sparkUp { 0%{ transform: translateY(0) scale(1); opacity: 1; } 100%{ transform: translateY(-55px) scale(0.3); opacity: 0; } }
+
+  @media (max-width: 360px) {
+    .ascii-art { font-size: 0.74rem; }
+    .tile-ico { font-size: 2.2rem; }
+    .wheel-stage { width: 220px; height: 220px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
   }
 </style>
 </head>
 <body>
 
-<!-- Floating petals -->
+<div class="orbs"><div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div></div>
 <div class="petals" id="petals"></div>
 
-<!-- Main card -->
-<div class="card">
-  <div class="card-inner">
+<div class="wrap">
 
-    <!-- Header -->
-    <div class="header">
-      <div class="header-hearts">♡ ♡ ♡</div>
-      <h1>Для&nbsp;<em>Полины</em></h1>
-    </div>
+  <header class="header reveal">
+    <div class="h-hearts">♡ ♡ ♡</div>
+    <h1 class="h-title">Для Полины</h1>
+    <div class="h-sub">маленькое письмо с большой нежностью</div>
+  </header>
 
-    <!-- Body -->
-    <div class="body">
+  <div class="big-heart-wrap reveal">
+    <span class="big-heart">    ♡♡♡       ♡♡♡
+  ♡♡♡♡♡♡♡   ♡♡♡♡♡♡♡
+  ♡♡♡♡♡♡♡♡♡♡♡♡♡♡♡♡♡
+   ♡♡♡♡♡♡♡♡♡♡♡♡♡♡♡
+     ♡♡♡♡♡♡♡♡♡♡♡♡
+       ♡♡♡♡♡♡♡♡♡
+         ♡♡♡♡♡
+           ♡</span>
+  </div>
 
-      <!-- Big ASCII Heart -->
-      <div class="big-heart-wrap">
-        <span class="big-heart">
-  ██╗  ██╗███████╗ █████╗ ██████╗ ████████╗
-  ██║  ██║██╔════╝██╔══██╗██╔══██╗╚══██╔══╝
-  ███████║█████╗  ███████║██████╔╝   ██║
-  ██╔══██║██╔══╝  ██╔══██║██╔══██╗   ██║
-  ██║  ██║███████╗██║  ██║██║  ██║   ██║
-  ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝</span>
-      </div>
-
-      <!-- ASCII creatures row -->
-      <div class="ascii-row">
-        <div class="ascii-box">
-          <span class="ascii-art"> /\_/\
+  <div class="ascii-row reveal">
+    <div class="glass ascii-box">
+      <span class="ascii-art"> /\_/\
 ( ^.^ )
  > ♡ <
 (__)(__)</span>
-          <div class="ascii-label">котик</div>
-        </div>
-
-        <div class="ascii-box">
-          <span class="ascii-art">  (\ (\
+      <div class="ascii-label">котик</div>
+    </div>
+    <div class="glass ascii-box">
+      <span class="ascii-art">  (\ (\
  ( -.-)
- o_(")(")</span>
-          <div class="ascii-label">зайчик</div>
-        </div>
+ o(")(")</span>
+      <div class="ascii-label">зайчик</div>
+    </div>
+  </div>
 
-        <div class="ascii-box">
-          <span class="ascii-art">  ♡   ♡
- ♡♡♡♡♡♡♡
-  ♡♡♡♡♡
-   ♡♡♡
-    ♡</span>
-          <div class="ascii-label">сердечко</div>
-        </div>
-      </div>
+  <div class="divider reveal">♡ · ♡ · ♡</div>
 
-      <!-- Second row -->
-      <div class="ascii-row">
-        <div class="ascii-box">
-          <span class="ascii-art">  /\_____/\
- / o     o \
-(     ♡     )
- \  ~___~  /
-  \_______/
-   |     |
-  / \_/\_/ \</span>
-          <div class="ascii-label">котик-пышка</div>
-        </div>
+  <article class="glass letter reveal">
+    <p>Привет, Полиночка ☁️</p>
+    <p>Я тут думал о тебе и понял — скучаю. Очень. Знаешь, когда человека нет рядом, а он всё равно каким-то образом везде — в мыслях, в мелочах, в тех моментах, когда хочется поделиться чем-то смешным.</p>
+    <p>Хочу тебя увидеть. По-настоящему, вживую. Посидеть, поговорить, посмеяться рядом.</p>
+    <p>Пожалуйста, встретимся? ♡</p>
+    <div class="sign">— с теплом, твой зайчик 🐰</div>
+  </article>
 
-        <div class="ascii-box">
-          <span class="ascii-art">   (\ /)
-   ( ^_^)
-  /|   |\
- (_|   |_)
-   |   |
-  (___/\___)</span>
-          <div class="ascii-label">зайка-стоя</div>
-        </div>
-      </div>
-
-      <div class="divider">♡ · ♡ · ♡</div>
-
-      <!-- Letter -->
-      <div class="letter">
-        <p>Привет, Полиночка&nbsp;☁️</p>
-        <p>
-          Я тут думал о тебе и понял — скучаю. Очень.
-          Знаешь, когда человека нет рядом, а он всё равно
-          каким-то образом везде — в мыслях, в мелочах,
-          в тех моментах, когда хочется поделиться чем-то смешным.
-        </p>
-        <p>
-          Хочу тебя увидеть. По-настоящему, вживую.
-          Посидеть, поговорить, посмеяться рядом.
-        </p>
-        <p>
-          Пожалуйста, встретимся? ♡
-        </p>
-        <div class="sign">— с теплом, твой зайчик 🐰</div>
-      </div>
-
-      <div class="divider">˗ˏˋ ♡ ˎˊ˗</div>
-
-      <!-- More ASCII -->
-      <div class="ascii-row">
-        <div class="ascii-box">
-          <span class="ascii-art">∧,,,∧
+  <div class="ascii-row reveal">
+    <div class="glass ascii-box">
+      <span class="ascii-art">∧,,,∧
 ( ♡ ♡ )
 (っ  っ
-|  _っ|
 `J  J´</span>
-          <div class="ascii-label">котик-обнимашка</div>
-        </div>
-
-        <div class="ascii-box">
-          <span class="ascii-art"> (\__/)
+      <div class="ascii-label">обнимашка</div>
+    </div>
+    <div class="glass ascii-box">
+      <span class="ascii-art"> (\__/)
  (•ω• )
 /つ  つ
  ♡ ♡ ♡</span>
-          <div class="ascii-label">зайка с сердечком</div>
-        </div>
-
-        <div class="ascii-box">
-          <span class="ascii-art">˚ ༘♡ ⋆｡˚
-♡  ♡  ♡
- ♡  ♡ ♡
-  ♡♡♡♡♡
-   ♡♡♡
-    ♡</span>
-          <div class="ascii-label">сердечный дождь</div>
-        </div>
-      </div>
-
-      <div class="cta-wrap">
-        <button class="cta" onclick="openModal()">
-          ♡&nbsp; Да, хочу встретиться! &nbsp;♡
-        </button>
-      </div>
-
-    </div><!-- /body -->
-
-    <!-- Footer -->
-    <div class="footer">
-      <p>♡ ♡ ♡<br>
-      Сделано с любовью и скукой по тебе<br>
-      <small style="font-size:0.75rem; opacity:0.7">нажми на кнопку 🐱</small></p>
+      <div class="ascii-label">зайка с ♡</div>
     </div>
-
-  </div><!-- /card-inner -->
-</div><!-- /card -->
-
-<!-- Modal -->
-<div class="modal-overlay" id="modal" onclick="closeModalOutside(event)">
-  <div class="modal">
-    <span class="modal-hearts">🐰♡🐱</span>
-    <h2>Ура!! ♡♡♡</h2>
-    <p>
-      Ты лучшая. Просто лучшая.<br>
-      Жду тебя — скоро увидимся! 🌸
-    </p>
-    <div style="font-family:monospace; color:#e91e63; font-size:0.75rem; line-height:1.4; margin-bottom:24px;">
-  (\__/)  (\__/)<br>
-  (♡ ω♡) (♡ ω♡)<br>
-  /つ &nbsp; づ\/<br>
-  &nbsp;&nbsp;&nbsp;♡♡♡♡♡
-    </div>
-    <button class="cta" onclick="closeModal()">Закрыть ♡</button>
   </div>
+
+  <h2 class="sec-title reveal">Чем займёмся? ♡</h2>
+  <div class="sec-sub reveal">выбери, что откроем вместе</div>
+
+  <div class="tiles reveal">
+    <button class="glass tile" onclick="Games.catch()">
+      <span class="tile-ico">🎮</span>
+      <div class="tile-lbl">Поймай сердечки</div>
+      <div class="tile-hint">мини-игра</div>
+    </button>
+    <button class="glass tile" onclick="Games.wheel()">
+      <span class="tile-ico">🎡</span>
+      <div class="tile-lbl">Колесо свиданий</div>
+      <div class="tile-hint">крути!</div>
+    </button>
+    <button class="glass tile" onclick="Games.surprise()">
+      <span class="tile-ico">💌</span>
+      <div class="tile-lbl">Открой сюрприз</div>
+      <div class="tile-hint">для тебя</div>
+    </button>
+    <button class="glass tile" onclick="Games.memory()">
+      <span class="tile-ico">🧩</span>
+      <div class="tile-lbl">Собери сердце</div>
+      <div class="tile-hint">пары</div>
+    </button>
+  </div>
+
+  <div class="cta-wrap reveal">
+    <button class="btn cta-main" onclick="openYes()">♡&nbsp; Да, хочу встретиться! &nbsp;♡</button>
+  </div>
+
+  <footer class="glass footer reveal">
+    <div class="fh">♡ ♡ ♡</div>
+    <p>сделано с любовью и скукой по тебе</p>
+  </footer>
+
+</div>
+
+<!-- Universal modal -->
+<div class="overlay" id="overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="modalBox"></div>
 </div>
 
 <script>
-// ── Floating petals ──
-const EMOJIS = ['🌸','🌷','💕','♡','🌺','✿','💗','🌹'];
-const petalsEl = document.getElementById('petals');
+(function(){
+  "use strict";
 
-function spawnPetal() {
-  const el = document.createElement('div');
-  el.className = 'petal';
-  el.textContent = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
-  el.style.left = Math.random() * 100 + 'vw';
-  el.style.fontSize = (0.9 + Math.random() * 1.2) + 'rem';
-  const dur = 5 + Math.random() * 8;
-  el.style.animationDuration = dur + 's';
-  el.style.animationDelay = Math.random() * 3 + 's';
-  petalsEl.appendChild(el);
-  setTimeout(() => el.remove(), (dur + 3) * 1000);
-}
-// Initial burst
-for (let i = 0; i < 18; i++) spawnPetal();
-// Continuous
-setInterval(spawnPetal, 700);
+  // ---------- Falling petals ----------
+  var SYM = ['🌸','🌷','💕','♡','🌺','💗','🦋','✨'];
+  var petals = document.getElementById('petals');
+  function spawnPetal(){
+    var s = document.createElement('span');
+    s.className = 'petal';
+    s.textContent = SYM[(Math.random()*SYM.length)|0];
+    var size = 0.8 + Math.random()*1.4;
+    var near = size > 1.6;
+    s.style.left = (Math.random()*100) + 'vw';
+    s.style.fontSize = size + 'rem';
+    s.style.filter = near ? 'none' : 'blur(' + (Math.random()*1.5) + 'px)';
+    s.style.setProperty('--op', (near?0.85:0.45).toString());
+    s.style.setProperty('--drift', ((Math.random()-0.5)*180) + 'px');
+    var dur = 6 + Math.random()*8;
+    s.style.animation = 'fall ' + dur + 's linear forwards';
+    petals.appendChild(s);
+    setTimeout(function(){ s.remove(); }, dur*1000 + 200);
+  }
+  for (var i=0;i<16;i++) setTimeout(spawnPetal, i*120);
+  setInterval(spawnPetal, 650);
 
-// ── Cursor sparkles ──
-const SPARKLE_CHARS = ['♡','✿','⋆','✦','·','♪','✩'];
-document.addEventListener('mousemove', (e) => {
-  if (Math.random() > 0.25) return;
-  const el = document.createElement('div');
-  el.className = 'sparkle';
-  el.textContent = SPARKLE_CHARS[Math.floor(Math.random() * SPARKLE_CHARS.length)];
-  el.style.left = e.clientX + 'px';
-  el.style.top  = e.clientY + 'px';
-  el.style.color = `hsl(${330 + Math.random()*40}, 80%, 60%)`;
-  document.body.appendChild(el);
-  setTimeout(() => el.remove(), 800);
-});
+  // ---------- Reveal on load (staggered) ----------
+  var reveals = document.querySelectorAll('.reveal');
+  reveals.forEach(function(el, idx){
+    setTimeout(function(){ el.classList.add('in'); }, 120 + idx*110);
+  });
 
-// ── Modal ──
-function openModal() {
-  document.getElementById('modal').classList.add('show');
-  // Burst of petals
-  for (let i = 0; i < 12; i++) setTimeout(spawnPetal, i * 60);
-}
-function closeModal() {
-  document.getElementById('modal').classList.remove('show');
-}
-function closeModalOutside(e) {
-  if (e.target === document.getElementById('modal')) closeModal();
-}
+  // ---------- Cursor sparkles ----------
+  var SP = ['♡','✿','⋆','✦','·','✩'];
+  var lastSp = 0;
+  document.addEventListener('mousemove', function(e){
+    var now = Date.now();
+    if (now - lastSp < 45) return;
+    lastSp = now;
+    var s = document.createElement('div');
+    s.className = 'sparkle';
+    s.textContent = SP[(Math.random()*SP.length)|0];
+    s.style.left = e.clientX + 'px';
+    s.style.top = e.clientY + 'px';
+    s.style.fontSize = (10 + Math.random()*10) + 'px';
+    s.style.color = 'hsl(' + (330+Math.random()*40) + ',80%,62%)';
+    s.style.animation = 'sparkUp 0.8s ease-out forwards';
+    document.body.appendChild(s);
+    setTimeout(function(){ s.remove(); }, 800);
+  });
 
-// ── Keyboard ──
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') closeModal();
-});
+  // ---------- Confetti ----------
+  function confetti(n){
+    n = n || 26;
+    var glyphs = ['💕','♡','🌸','✨','💗','🌷'];
+    for (var i=0;i<n;i++){
+      (function(){
+        var c = document.createElement('div');
+        c.className = 'confetti';
+        c.textContent = glyphs[(Math.random()*glyphs.length)|0];
+        c.style.left = (Math.random()*100) + 'vw';
+        c.style.fontSize = (0.9 + Math.random()*1.3) + 'rem';
+        var dur = 2.2 + Math.random()*1.8;
+        c.style.animation = 'confFall ' + dur + 's cubic-bezier(.3,.5,.5,1) forwards';
+        c.style.animationDelay = (Math.random()*0.4) + 's';
+        document.body.appendChild(c);
+        setTimeout(function(){ c.remove(); }, (dur+0.6)*1000);
+      })();
+    }
+  }
+  setTimeout(function(){ confetti(20); }, 600);
+
+  // ---------- Modal helpers ----------
+  var overlay = document.getElementById('overlay');
+  var box = document.getElementById('modalBox');
+  var cleanup = null;
+  function open(html){
+    if (cleanup){ cleanup(); cleanup = null; }
+    box.innerHTML = '<button class="x-close" onclick="closeModal()">✕</button>' + html;
+    overlay.classList.add('show');
+    box.scrollTop = 0;
+  }
+  function closeModal(){
+    overlay.classList.remove('show');
+    if (cleanup){ cleanup(); cleanup = null; }
+  }
+  window.closeModal = closeModal;
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeModal(); });
+
+  // ---------- YES modal ----------
+  window.openYes = function(){
+    open(
+      '<span class="modal-hearts">🐰♡🐱</span>' +
+      '<h2>Ура!! ♡♡♡</h2>' +
+      '<p class="lead">Ты лучшая. Просто лучшая.<br>Жду тебя — скоро увидимся! 🌸</p>' +
+      '<pre style="font-family:monospace;color:#E91E63;font-size:.8rem;line-height:1.35;margin-bottom:18px;">' +
+      '(\\__/)   /\\_/\\\n(♡ ω♡) ( ^.^ )\n  ♡   ♡   ♡   ♡</pre>' +
+      '<button class="btn" style="padding:14px 34px;font-size:1rem;" onclick="closeModal()">Закрыть ♡</button>'
+    );
+    confetti(34);
+  };
+
+  // ================= GAMES =================
+  var Games = {};
+
+  // ---- 1. Catch the hearts ----
+  Games.catch = function(){
+    open(
+      '<h2>Поймай сердечки</h2>' +
+      '<div class="ch-hud"><span>⏱ <b id="chTime">20</b> с</span><span>♡ <b id="chScore">0</b></span></div>' +
+      '<div id="catchField"></div>' +
+      '<div id="chEnd"></div>'
+    );
+    var field = document.getElementById('catchField');
+    var elTime = document.getElementById('chTime');
+    var elScore = document.getElementById('chScore');
+    var elEnd = document.getElementById('chEnd');
+    var score = 0, time = 20, spawnId, timerId, running = true;
+    var KINDS = [
+      {e:'🐱',p:1},{e:'🐰',p:1},{e:'🌸',p:1},{e:'♡',p:1},{e:'💛',p:5}
+    ];
+    function spawn(){
+      if (!running) return;
+      var k = Math.random() < 0.12 ? KINDS[4] : KINDS[(Math.random()*4)|0];
+      var it = document.createElement('span');
+      it.className = 'ch-item';
+      it.textContent = k.e;
+      if (k.p === 5){ it.style.fontSize = '2.5rem'; it.style.filter = 'drop-shadow(0 0 8px gold)'; }
+      var x = 6 + Math.random()*78;
+      it.style.left = x + '%';
+      it.style.bottom = '-44px';
+      var dur = 2.4 + Math.random()*1.6;
+      it.style.animation = 'floatUp ' + dur + 's linear forwards';
+      var grabbed = false;
+      function grab(ev){
+        ev.preventDefault();
+        if (grabbed || !running) return;
+        grabbed = true;
+        score += k.p;
+        elScore.textContent = score;
+        it.classList.add('ch-pop');
+        setTimeout(function(){ it.remove(); }, 300);
+      }
+      it.addEventListener('click', grab);
+      it.addEventListener('touchstart', grab, {passive:false});
+      field.appendChild(it);
+      setTimeout(function(){ it.remove(); }, dur*1000 + 100);
+    }
+    spawnId = setInterval(spawn, 420);
+    timerId = setInterval(function(){
+      time--; elTime.textContent = time;
+      if (time <= 0) finish();
+    }, 1000);
+    function finish(){
+      running = false;
+      clearInterval(spawnId); clearInterval(timerId);
+      field.style.opacity = '0.4';
+      elEnd.innerHTML =
+        '<div style="margin-top:14px;font-family:\'Playfair Display\',serif;font-size:1.25rem;color:#C2185B;">Ты набрала ' + score + ' очков! ♡</div>' +
+        '<p style="font-family:Caveat,cursive;font-size:1.2rem;color:#E91E63;margin:6px 0 14px;">каждое сердечко — это сколько я по тебе скучаю</p>' +
+        '<button class="btn" style="padding:13px 30px;font-size:.98rem;" onclick="Games.catch()">Ещё раз ♡</button>';
+      confetti(20);
+    }
+    cleanup = function(){ running = false; clearInterval(spawnId); clearInterval(timerId); };
+  };
+
+  // ---- 2. Date wheel ----
+  Games.wheel = function(){
+    var SEG = [
+      {t:'Прогулка под звёздами 🌙', c:'#FF9FB8'},
+      {t:'Кофе и болтовня ☕',       c:'#E91E63'},
+      {t:'Кино с пледом 🎬',         c:'#FF85A1'},
+      {t:'Пикник в парке 🧺',        c:'#C2185B'},
+      {t:'Просто обнимашки 🤗',      c:'#FFB0C8'},
+      {t:'Ужин при свечах 🕯️',       c:'#D81B60'}
+    ];
+    var n = SEG.length, slice = 360/n;
+    var grad = 'conic-gradient(';
+    for (var i=0;i<n;i++){
+      grad += SEG[i].c + ' ' + (i*slice) + 'deg ' + ((i+1)*slice) + 'deg';
+      grad += (i<n-1?', ':'');
+    }
+    grad += ')';
+    open(
+      '<h2>Колесо свиданий</h2>' +
+      '<p class="lead">Крути — и узнаем, как проведём время вместе ♡</p>' +
+      '<div class="wheel-stage"><div class="wheel-pin"></div>' +
+      '<div class="wheel" id="wheelEl" style="background:' + grad + '"></div>' +
+      '<div class="wheel-cap">♡</div></div>' +
+      '<div class="wheel-result" id="wheelRes">&nbsp;</div>' +
+      '<button class="btn" id="wheelBtn" style="padding:14px 36px;font-size:1.02rem;">Крутить! 🎡</button>'
+    );
+    var wheel = document.getElementById('wheelEl');
+    var btn = document.getElementById('wheelBtn');
+    var res = document.getElementById('wheelRes');
+    var spun = 0, busy = false;
+    btn.addEventListener('click', function(){
+      if (busy) return;
+      busy = true; res.textContent = '';
+      var pick = (Math.random()*n)|0;
+      // pointer at top (12 o'clock). Segment center angle:
+      var center = pick*slice + slice/2;
+      var target = 360*5 + (360 - center);
+      spun += target;
+      wheel.style.transform = 'rotate(' + spun + 'deg)';
+      setTimeout(function(){
+        res.innerHTML = 'Наше свидание:<br><b>' + SEG[pick].t + '</b>';
+        btn.textContent = 'Ещё разок 🎡';
+        confetti(18);
+        busy = false;
+      }, 4500);
+    });
+    cleanup = function(){};
+  };
+
+  // ---- 3. Surprise envelope ----
+  Games.surprise = function(){
+    var NOTES = [
+      'Ты делаешь обычный день волшебным',
+      'С тобой даже тишина уютная',
+      'Скучаю по твоей улыбке',
+      'Ты — моё любимое уведомление',
+      'Рядом с тобой я становлюсь лучше',
+      'Хочу пересмотреть с тобой тысячу закатов',
+      'Ты пахнешь домом и счастьем',
+      'Каждая мысль о тебе — как тёплый плед'
+    ];
+    var idx = 0, order = NOTES.slice().sort(function(){ return Math.random()-0.5; });
+    open(
+      '<h2>Маленький сюрприз</h2>' +
+      '<p class="lead">Нажми на конверт ♡</p>' +
+      '<span class="env" id="envEl">💌</span>' +
+      '<div class="note-card" id="noteEl" style="opacity:0;">…</div>' +
+      '<button class="btn" id="moreBtn" style="display:none;padding:13px 30px;font-size:.98rem;">Ещё ♡</button>'
+    );
+    var env = document.getElementById('envEl');
+    var note = document.getElementById('noteEl');
+    var more = document.getElementById('moreBtn');
+    function show(){
+      note.textContent = '«' + order[idx % order.length] + '»';
+      note.style.opacity = '1';
+      note.classList.remove('flip'); void note.offsetWidth; note.classList.add('flip');
+    }
+    env.addEventListener('click', function(){
+      env.classList.add('opened'); env.textContent = '💖';
+      show(); more.style.display = 'inline-block';
+      setTimeout(function(){ env.classList.remove('opened'); }, 500);
+      confetti(14);
+    });
+    more.addEventListener('click', function(){ idx++; show(); });
+    cleanup = function(){};
+  };
+
+  // ---- 4. Memory match ----
+  Games.memory = function(){
+    var PAIR = ['🐱','🐰','🌸','💕','🌷','🦋'];
+    var deck = PAIR.concat(PAIR).sort(function(){ return Math.random()-0.5; });
+    open(
+      '<h2>Собери сердце</h2>' +
+      '<div class="mem-hud">Пары: <b id="memPairs">0</b>/6 · Ходы: <b id="memMoves">0</b></div>' +
+      '<div class="mem-grid" id="memGrid"></div>' +
+      '<div id="memEnd"></div>'
+    );
+    var grid = document.getElementById('memGrid');
+    var pEl = document.getElementById('memPairs');
+    var mEl = document.getElementById('memMoves');
+    var endEl = document.getElementById('memEnd');
+    var first = null, lock = false, pairs = 0, moves = 0;
+    deck.forEach(function(sym){
+      var card = document.createElement('div');
+      card.className = 'mem-card';
+      card.innerHTML = '<div class="mem-face mem-back">♡</div><div class="mem-face mem-front">' + sym + '</div>';
+      card.dataset.sym = sym;
+      card.addEventListener('click', function(){
+        if (lock || card.classList.contains('flipped') || card.classList.contains('matched')) return;
+        card.classList.add('flipped');
+        if (!first){ first = card; return; }
+        moves++; mEl.textContent = moves;
+        if (first.dataset.sym === card.dataset.sym){
+          first.classList.add('matched'); card.classList.add('matched');
+          first = null; pairs++; pEl.textContent = pairs;
+          if (pairs === 6) win();
+        } else {
+          lock = true;
+          var a = first, b = card; first = null;
+          setTimeout(function(){ a.classList.remove('flipped'); b.classList.remove('flipped'); lock = false; }, 750);
+        }
+      });
+      grid.appendChild(card);
+    });
+    function win(){
+      endEl.innerHTML =
+        '<div style="margin-top:14px;font-family:\'Playfair Display\',serif;font-size:1.2rem;color:#C2185B;">Сердце собрано! ♡</div>' +
+        '<p style="font-family:Caveat,cursive;font-size:1.25rem;color:#E91E63;margin:6px 0 14px;">как и моё — оно твоё</p>' +
+        '<button class="btn" style="padding:13px 30px;font-size:.98rem;" onclick="Games.memory()">Сыграть ещё ♡</button>';
+      confetti(34);
+    }
+    cleanup = function(){};
+  };
+
+  window.Games = Games;
+})();
 </script>
 </body>
 </html>
